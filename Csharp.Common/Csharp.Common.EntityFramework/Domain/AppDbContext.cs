@@ -1,3 +1,4 @@
+using Csharp.Common.EntityFramework.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;

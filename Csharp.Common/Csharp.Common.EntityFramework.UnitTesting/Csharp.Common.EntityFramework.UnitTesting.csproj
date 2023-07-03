@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Csharp.Common.EntityFramework\Csharp.Common.EntityFramework.csproj" />
+      <ProjectReference Include="..\Csharp.Common.UnitTesting\Csharp.Common.UnitTesting.csproj" />
+    </ItemGroup>
+
+</Project>

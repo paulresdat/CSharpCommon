@@ -1,4 +1,4 @@
-namespace Csharp.Common.EntityFramework.Domain;
+namespace Csharp.Common.EntityFramework.Domain.Options;
 
 public class ConnectionStringOptions
 {
