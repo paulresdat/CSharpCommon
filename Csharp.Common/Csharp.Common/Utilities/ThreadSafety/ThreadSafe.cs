@@ -5,93 +5,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Csharp.Common.Utilities;
 
-public interface IThreadSafe
-{
-    void EnterReadLock(Action action);
-    T EnterReadLock<T>(Func<T> action);
-    void EnterReadWriteLock(Action action);
-    T EnterReadWriteLock<T>(Func<T> action);
-    bool InRead { get; }
-    bool InWrite { get; }
-    bool InReadOrWrite { get; }
-}
-
-public class ThreadSafeLock : ThreadSafe, IThreadSafe
-{
-    public new bool InRead => base.InRead;
-    public new bool InWrite => base.InWrite;
-    public new bool InReadOrWrite => base.InReadOrWrite;
-
-    public new void EnterReadLock(Action action)
-    {
-        base.EnterReadLock(action);
-    }
-
-    public new T EnterReadLock<T>(Func<T> action)
-    {
-        return base.EnterReadLock(action);
-    }
-
-    public new void EnterReadWriteLock(Action action)
-    {
-        base.EnterReadWriteLock(action);
-    }
-
-    public new T EnterReadWriteLock<T>(Func<T> action)
-    {
-        return base.EnterReadWriteLock(action);
-    }
-}
-
-public interface IThreadSafeLockingFactory
-{
-    void EnterReadLock<T>(T lockKey, Action action) where T : notnull;
-    T2 EnterReadLock<T, T2>(T lockKey, Func<T2> action) where T : notnull;
-    void EnterReadWriteLock<T>(T lockKey, Action action) where T : notnull;
-    T2 EnterReadWriteLock<T, T2>(T lockKey, Func<T2> action) where T : notnull;
-
-}
-
-public class ThreadSafeLockingFactory: IThreadSafeLockingFactory
-{
-    private readonly Dictionary<object, IThreadSafe> _locks = new();
-
-    public void EnterReadLock<T>(T lockKey, Action action) where T: notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.EnterReadLock(action);
-    }
-
-    public T2 EnterReadLock<T, T2>(T lockKey, Func<T2> action) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.EnterReadLock(action);
-    }
-
-    public void EnterReadWriteLock<T>(T lockKey, Action action) where T: notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.EnterReadWriteLock(action);
-    }
-
-    public T2 EnterReadWriteLock<T, T2>(T lockKey, Func<T2> action) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.EnterReadWriteLock(action);
-    }
-
-    private IThreadSafe TryCreateLock(object lockKey)
-    {
-        if (_locks.ContainsKey(lockKey))
-        {
-            return _locks[lockKey];
-        }
-
-        _locks[lockKey] = new ThreadSafeLock();
-        return _locks[lockKey];
-    }
-}
-
 /// <summary>
 /// <para>Thread Safety abstract class that allows the ability for us to manage locks for both read and writes.  We use this
 /// class to wrap a data structure managing class to be thread safe.</para>
@@ -290,7 +203,7 @@ public abstract class ThreadSafe
 }
 
 /// <summary>
-/// Thread safety with an injected logger
+/// Thread safety with an injected logger.  For documentation see <see cref="ThreadSafe" />
 /// </summary>
 /// <typeparam name="TParent"></typeparam>
 public abstract class ThreadSafe<TParent> : ThreadSafe where TParent : class

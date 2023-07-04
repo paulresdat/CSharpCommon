@@ -1,5 +1,3 @@
-using System;
-
 namespace Csharp.Common.Utilities;
 
 /// <summary>
@@ -51,7 +49,7 @@ public delegate void DebugOutputDelegate(string message);
 /// </code>
 /// </example>
 /// </summary>
-public abstract class DebugOutput
+public abstract class DebugOutput : IDebugOutput
 {
     public event DebugOutputDelegate? DebugOutputDelegate;
     protected string Preamble { get; set; } = "";
@@ -63,7 +61,7 @@ public abstract class DebugOutput
         _pT = GetType().BaseType;
     }
 
-    protected void ConsoleWrite(params object[] data)
+    public void ConsoleWrite(params object[] data)
     {
         foreach (var obj in data)
         {
