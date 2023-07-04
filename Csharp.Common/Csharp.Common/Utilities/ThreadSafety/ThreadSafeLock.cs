@@ -1,4 +1,4 @@
-namespace Csharp.Common.Utilities;
+namespace Csharp.Common.Utilities.ThreadSafety;
 
 public class ThreadSafeLock : ThreadSafe, IThreadSafe
 {

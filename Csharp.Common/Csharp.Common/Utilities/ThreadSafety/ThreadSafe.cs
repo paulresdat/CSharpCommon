@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
-namespace Csharp.Common.Utilities;
+namespace Csharp.Common.Utilities.ThreadSafety;
 
 /// <summary>
 /// <para>Thread Safety abstract class that allows the ability for us to manage locks for both read and writes.  We use this
