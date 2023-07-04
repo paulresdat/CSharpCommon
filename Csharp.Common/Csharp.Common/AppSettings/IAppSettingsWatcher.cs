@@ -3,8 +3,7 @@ namespace Csharp.Common.AppSettings;
 /// <summary>
 /// This is used for abstract classes that require any kind of settings to be defined if there is an interface that
 /// describes the expected settings.  It shouldn't be used unless you know that you require the interface instead of the
-/// concrete.  99% of the time, you will not need this.  For an example of use see the TCSIM Message Bus Repository base
-/// class.
+/// concrete.  99% of the time, you will not need this.
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public interface IAppSettingsWatcherBase<out T> where T : class

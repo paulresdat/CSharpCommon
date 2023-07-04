@@ -32,7 +32,7 @@ public interface ICommandListFluency
 }
 
 /// <summary>
-/// <para>Admin Console Abstract Class</para>
+/// <para>Console Commander Abstract Class</para>
 ///
 /// <para>
 /// This abstract serves as the boiler plate of code that allows for a kind of command line system in a console application.
@@ -54,11 +54,6 @@ public interface ICommandListFluency
 /// create commands around the functionality you injected.  For instance, at the service layer, you may have a
 /// "StartMonitoring" method that starts up the monitor of an ITCM or RabbitMQ queue.  You would make a new console
 /// command that can start and stop that monitor when the command is given on the command line.
-/// </para>
-///
-/// <para>
-/// For more information, you can consult more documentation.  For a good example, you can try looking at any of the
-/// TCSIM services in the TCSIM project.
 /// </para>
 /// </summary>
 /// 
@@ -99,14 +94,14 @@ public interface ICommandListFluency
 /// }
 /// </code>
 /// </example>
-public abstract class AdminConsole : ICommandListFluency, IAdminConsole
+public abstract class CliCommander : ICommandListFluency, IAdminConsole
 {
     // ReSharper disable once MemberCanBePrivate.Global
     protected readonly IConsoleCommandList CommandList;
     // ReSharper disable once MemberCanBePrivate.Global
     protected readonly ICliComponent CliComponent;
 
-    protected AdminConsole(ICliComponent cliComponent, IConsoleCommandList commandList)
+    protected CliCommander(ICliComponent cliComponent, IConsoleCommandList commandList)
     {
         CliComponent = cliComponent;
         CommandList = commandList;
@@ -214,7 +209,7 @@ public abstract class AdminConsole : ICommandListFluency, IAdminConsole
             }
             catch (Exception e)
             {
-                Console.WriteLine("There was an exception that was thrown when you tried to run that command: " + e.Message);
+                Console.WriteLine("A general exception was thrown when running the previous command: " + e.Message);
                 Console.WriteLine(e.StackTrace);
             }
         }

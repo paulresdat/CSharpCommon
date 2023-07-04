@@ -29,6 +29,14 @@ public interface IThreadSafeLockingFactory
 /// </para>
 ///
 /// <para>
+/// I would suggest that if you are locking on a single object, that instead of using the
+/// thread lock factory, you inherit `ThreadSafe`.  It's idiomatic to encapsulate CRUD
+/// operations on a thread sensitive object by encapsulating it as a readonly private property
+/// of the parent class and expose CRUD methods that enter lock states in the parent class.
+/// Please see <see cref="ThreadSafe">ThreadSafe</see> for more details on its use.
+/// </para>
+///
+/// <para>
 /// Caveat: this is not safe on Dictionaries.  Before operating on complex data structures
 /// it would be wise to consult documentation on the inner workings of memory safe data types in
 /// C# before locking on it.  Locking on Dictionaries by key may not be inherently thread safe since

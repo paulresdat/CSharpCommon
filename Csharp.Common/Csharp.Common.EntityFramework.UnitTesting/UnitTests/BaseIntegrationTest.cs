@@ -7,7 +7,7 @@ namespace Csharp.Common.EntityFramework.UnitTesting.UnitTests;
 /// </summary>
 /// <typeparam name="TDbContext"></typeparam>
 public abstract class IntegrationTestBase<TDbContext> : EfBaseUnitTest, IDisposable
-    where TDbContext : IAppDbContext
+    where TDbContext : AppDbContext
 {
     private TDbContext? _dbContext;
     private bool _inTransaction;

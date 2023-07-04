@@ -25,12 +25,16 @@ namespace Csharp.Common.Utilities.ThreadSafety;
 ///
 /// Each data structure you have has a lock, if combined with several locks in one class, then it's probably code stink.
 /// Meaning you haven't separated your important structures as dedicated objects that are manipulated upon from an
-/// outside algorithm.  You'll want to rip out the code that operates on those data structures into a new class for each
-/// critical data structure.  Then you'll want to extend each class with <c>ThreadSafe</c>.  After extending, you no
+/// outside algorithm.  If you have multiple thread safe objects in one class, then you probably haven't separated your
+/// concerns far enough and will need to rip out the code that operates on those data structures into new classes for each
+/// critical data structure.  You'll expose the necessary CRUD operations like a repository in an interface for these
+/// critical data structures. Then you'll want to extend each class with <c>ThreadSafe</c>.  After extending, you no
 /// longer need to manage any locking objects, try catches, or any other fail safe mechanisms around locking.  Within a
-/// public facing method (defined usually in an interface) that operates on the data structure, you wrap your critical
-/// code in a read or read/write lock.  And that's it.
+/// public facing method that operates on the data structure, you wrap your critical code in a read or read/write lock.
+/// And that's it.
+/// </para>
 ///
+/// <para>
 /// <example>
 /// An example of calling a lock:
 /// <code>
@@ -39,6 +43,33 @@ namespace Csharp.Common.Utilities.ThreadSafety;
 ///   EnterReadWriteLock(() => {
 ///     _myDataStructure.Data = data;
 ///   });
+/// }
+/// </code>
+/// </example>
+///
+/// /// <example>
+/// An example of using ThreadSafe:
+/// <code>
+/// public class MyClass : ThreadSafe
+/// {
+///    private readonly List{string} _myThreadSensitiveData = new();
+///    public MyClass( ... ) { }
+///
+///    public string Read(int num)
+///    {
+///         return EnterReadLock(() => {
+///             return _myThreadSensitiveData[num];
+///         });
+///    }
+///
+///    public void Write(int num, string data)
+///    {
+///         EnterReadWriteLock(() => {
+///             _myThreadSensitiveData[num] = data;
+///         });
+///    }
+/// 
+///    ....
 /// }
 /// </code>
 /// </example>
@@ -200,7 +231,7 @@ public abstract class ThreadSafe
 }
 
 /// <summary>
-/// Thread safety with an injected logger.  For documentation see <see cref="ThreadSafe" />
+/// Thread safety with an injected logger.  For documentation see <see cref="ThreadSafe">ThreadSafe</see>
 /// </summary>
 /// <typeparam name="TParent"></typeparam>
 public abstract class ThreadSafe<TParent> : ThreadSafe where TParent : class
