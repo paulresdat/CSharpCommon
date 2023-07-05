@@ -47,8 +47,14 @@ public interface IThreadSafeLockingFactory
 /// hashed keys in the linked list for performance reasons.  Check the docs before you try and lock
 /// on parts of a complex built-in data structure.
 /// </para>
+///
+/// <para>
+/// Because of this feature and inherent design of dictionary hashcode lookup, the thread safety
+/// factory should probably not be used for very large data sets that require locking on string
+/// keys.
+/// </para>
 /// </summary>
-public class ThreadSafeLockingFactory: IThreadSafeLockingFactory
+public class ThreadSafeLockingFactory: ThreadSafe, IThreadSafeLockingFactory
 {
     private readonly Dictionary<object, IThreadSafe> _locks = new();
 
@@ -78,12 +84,26 @@ public class ThreadSafeLockingFactory: IThreadSafeLockingFactory
 
     private IThreadSafe TryCreateLock(object lockKey)
     {
-        if (_locks.ContainsKey(lockKey))
+        var @lock = EnterReadLock(() =>
         {
-            return _locks[lockKey];
+            if (_locks.TryGetValue(lockKey, out var lock1))
+            {
+                return lock1;
+            }
+
+            return null;
+        });
+
+        if (@lock is null)
+        {
+            // for some safety on generating locks, we'll want to lock on creating a key for the first time
+            return EnterReadWriteLock(() =>
+            {
+                _locks[lockKey] = new ThreadSafeLock();
+                return _locks[lockKey];
+            });
         }
 
-        _locks[lockKey] = new ThreadSafeLock();
-        return _locks[lockKey];
+        return @lock;
     }
 }
