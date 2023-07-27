@@ -93,10 +93,6 @@ public abstract class ThreadSafe
     protected bool InWrite => _lockSlim.IsWriteLockHeld;
     protected bool InReadOrWrite => InRead || InWrite;
 
-    protected ThreadSafe()
-    {
-    }
-
     /// <summary>
     /// Allows for a void read, in case you're manipulating data outside the scope of the read lock
     /// or some other kind of function that doesn't require a write lock on the object being locked
@@ -104,29 +100,7 @@ public abstract class ThreadSafe
     /// <param name="action"></param>
     protected void EnterReadLock(Action action)
     {
-        try
-        {
-            _lockSlim.EnterReadLock();
-            try
-            {
-                action();
-            }
-            finally
-            {
-                _lockSlim.ExitReadLock();
-            }
-        }
-        catch (LockRecursionException e)
-        {
-            Logger?.LogCritical(LockRecursionText);
-            Logger?.LogCritical(e, "Exception and stacktrace");
-            throw;
-        }
-        catch (Exception e)
-        {
-            Logger?.LogCritical("An exception has occurred: {Exception}, {StackTrace}", e.Message, e.StackTrace);
-            throw;
-        }
+        TryEnterLock(LockType.Read, action);
     }
 
     /// <summary>
@@ -138,29 +112,7 @@ public abstract class ThreadSafe
     /// <returns></returns>
     protected T EnterReadLock<T>(Func<T> action)
     {
-        try
-        {
-            _lockSlim.EnterReadLock();
-            try
-            {
-                return action();
-            }
-            finally
-            {
-                _lockSlim.ExitReadLock();
-            }
-        }
-        catch (LockRecursionException e)
-        {
-            Logger?.LogCritical(LockRecursionText);
-            Logger?.LogCritical(e, "Exception and stacktrace");
-            throw;
-        }
-        catch (Exception e)
-        {
-            Logger?.LogCritical("An exception has occurred: {Exception}, {StackTrace}", e.Message, e.StackTrace);
-            throw;
-        }
+        return TryEnterLock(LockType.Read, action);
     }
 
     /// <summary>
@@ -169,9 +121,186 @@ public abstract class ThreadSafe
     /// <param name="action"></param>
     protected void EnterReadWriteLock(Action action)
     {
+        TryEnterLock(LockType.Write, action);
+    }
+    
+    /// <summary>
+    /// Enter a write lock on the object and return the type defined by the function passed
+    /// <br/>
+    /// <example>
+    /// <code>
+    /// return EnterReadWriteLock(() => {
+    ///   return 1;
+    /// });
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="action"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T EnterReadWriteLock<T>(Func<T> action)
+    {
+        return TryEnterLock(LockType.Write, action);
+    }
+
+    /// <summary>
+    /// Try to enter a read lock with a timespan timeout
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="tryTimeSpan"></param>
+    protected void TryEnterReadLock(Action action, TimeSpan tryTimeSpan)
+    {
+        TryEnterLock(LockType.TryRead, action, tryTimeSpan);
+    }
+
+    /// <summary>
+    /// Try to enter a read lock with a timespan timeout with expected output from the passed action
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="tryTimeSpan"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T TryEnterReadLock<T>(Func<T> action, TimeSpan tryTimeSpan)
+    {
+        return TryEnterLock(LockType.TryRead, action, tryTimeSpan);
+    }
+
+    /// <summary>
+    /// Try to enter a read write lock with a timespan
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="tryTimeSpan"></param>
+    protected void TryEnterReadWriteLock(Action action, TimeSpan tryTimeSpan)
+    {
+        TryEnterLock(LockType.TryWrite, action, tryTimeSpan);
+    }
+
+    /// <summary>
+    /// Try to enter a read write lock with a timespan and a return value from the passed action
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="tryTimeSpan"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T TryEnterReadWriteLock<T>(Func<T> action, TimeSpan tryTimeSpan)
+    {
+        return TryEnterLock(LockType.TryWrite, action, tryTimeSpan);
+    }
+
+    /// <summary>
+    /// Enter an upgradeable read lock, which allows you to run a write lock within the read lock block action
+    ///
+    /// <example>
+    /// <code>
+    /// EnterUpgradeableReadLock(() => {
+    ///   EnterReadWriteLock(() => { });
+    /// });
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="action"></param>
+    protected void EnterUpgradeableReadLock(Action action)
+    {
+        TryEnterLock(LockType.UpgradeableRead, action);
+    }
+
+    /// <summary>
+    /// Enter an upgradeable read lock, which allows you to run a write lock within the read lock block action
+    ///
+    /// <example>
+    /// <code>
+    /// return EnterUpgradeableReadLock(() => {
+    ///   return EnterReadWriteLock(() => {
+    ///     return 1;
+    ///   });
+    /// });
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="action"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T EnterUpgradeableReadLock<T>(Func<T> action)
+    {
+        return TryEnterLock(LockType.UpgradeableRead, action);
+    }
+
+    /// <summary>
+    /// Try to enter an upgradeable lock with a timespan timeout
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="tryTimeSpan"></param>
+    protected void TryEnterUpgradeableReadLock(Action action, TimeSpan tryTimeSpan)
+    {
+        TryEnterLock(LockType.TryUpgradeableRead, action, tryTimeSpan);
+    }
+
+    /// <summary>
+    /// Try to enter an upgradeable lock with a timespan timeout and a returning value from the passed action
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="tryTimeSpan"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T TryEnterUpgradeableReadLock<T>(Func<T> action, TimeSpan tryTimeSpan)
+    {
+        return TryEnterLock(LockType.TryUpgradeableRead, action, tryTimeSpan);
+    }
+
+    #region private functions that take out the boiler plate of the try catches
+    private void EnterLockByType(LockType lockType, TimeSpan? tryEnterLockTimeSpan = null)
+    {
+        switch (lockType)
+        {
+            case LockType.Read:
+                _lockSlim.EnterReadLock();
+                break;
+            case LockType.Write:
+                _lockSlim.EnterWriteLock();
+                break;
+            case LockType.UpgradeableRead:
+                _lockSlim.EnterUpgradeableReadLock();
+                break;
+            case LockType.TryUpgradeableRead:
+                _lockSlim.TryEnterUpgradeableReadLock(tryEnterLockTimeSpan ?? throw new InvalidOperationException());
+                break;
+            case LockType.TryRead:
+                _lockSlim.TryEnterReadLock(tryEnterLockTimeSpan ?? throw new InvalidOperationException());
+                break;
+            case LockType.TryWrite:
+                _lockSlim.TryEnterWriteLock(tryEnterLockTimeSpan ?? throw new InvalidOperationException());
+                break;
+            default:
+                throw new InvalidOperationException("Unknown lock type: " + lockType);
+        }
+    }
+
+    private void ExitLockByType(LockType lockType, TimeSpan? tryEnterLockTimeSpan = null)
+    {
+        switch (lockType)
+        {
+            case LockType.Read:
+            case LockType.TryRead:
+                _lockSlim.ExitReadLock();
+                break;
+            case LockType.Write:
+            case LockType.TryWrite:
+                _lockSlim.ExitWriteLock();
+                break;
+            case LockType.UpgradeableRead:
+            case LockType.TryUpgradeableRead:
+                _lockSlim.ExitUpgradeableReadLock();
+                break;
+            default:
+                throw new InvalidOperationException("Unknown lock type: " + lockType);
+        }
+    }
+
+    private void TryEnterLock(LockType lockType, Action action, TimeSpan? tryEnterLockTimeSpan = null)
+    {
         try
         {
-            _lockSlim.EnterWriteLock();
+            EnterLockByType(lockType);
 
             try
             {
@@ -179,7 +308,7 @@ public abstract class ThreadSafe
             }
             finally
             {
-                _lockSlim.ExitWriteLock();
+                ExitLockByType(lockType);
             }
         }
         catch (LockRecursionException e)
@@ -194,18 +323,12 @@ public abstract class ThreadSafe
             throw;
         }
     }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="action"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    protected T EnterReadWriteLock<T>(Func<T> action)
+
+    private T TryEnterLock<T>(LockType lockType, Func<T> action, TimeSpan? tryEnterLockTimeSpan = null)
     {
         try
         {
-            _lockSlim.EnterWriteLock();
+            EnterLockByType(lockType);
 
             try
             {
@@ -213,7 +336,7 @@ public abstract class ThreadSafe
             }
             finally
             {
-                _lockSlim.ExitWriteLock();
+                ExitLockByType(lockType);
             }
         }
         catch (LockRecursionException e)
@@ -228,7 +351,19 @@ public abstract class ThreadSafe
             throw;
         }
     }
+
+    private enum LockType
+    {
+        Read,
+        Write,
+        UpgradeableRead,
+        TryUpgradeableRead,
+        TryRead,
+        TryWrite,
+    }
+    #endregion
 }
+
 
 /// <summary>
 /// Thread safety with an injected logger.  For documentation see <see cref="ThreadSafe">ThreadSafe</see>

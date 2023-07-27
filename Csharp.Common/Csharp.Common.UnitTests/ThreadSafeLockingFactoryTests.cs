@@ -17,7 +17,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         ServiceCollection.AddSingleton<ThreadSafeOnLists>();
     }
 
-    [Fact(DisplayName = "Thread Safe Lock works well on a list")]
+    [Fact(DisplayName = "001 Thread Safe Lock works well on a list")]
     public void T001()
     {
         var sp = GetNewServiceProvider;
@@ -87,6 +87,43 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
             });
 
             Task.WaitAll(task3, task4);
+        });
+    }
+
+    private class ThreadLocker : ThreadSafe
+    {
+        public new void EnterUpgradeableReadLock(Action action)
+        {
+            base.EnterUpgradeableReadLock(action);
+        }
+
+        public new void EnterReadWriteLock(Action action)
+        {
+            base.EnterReadWriteLock(action);
+        }
+    }
+
+    [Fact(DisplayName = "002 Thread safe locking allow for upgradable read")]
+    public void T002()
+    {
+        var threadLocker = new ThreadLocker();
+        threadLocker.EnterUpgradeableReadLock(() =>
+        {
+            threadLocker.EnterReadWriteLock(() =>
+            {
+                _output.WriteLine("Successfully upgraded to write lock");
+            });
+        });
+
+        Assert.Throws<LockRecursionException>(() =>
+        {
+            threadLocker.EnterReadWriteLock(() =>
+            {
+                threadLocker.EnterReadWriteLock(() =>
+                {
+                    _output.WriteLine("whoops something is wrong");
+                });
+            });
         });
     }
 
