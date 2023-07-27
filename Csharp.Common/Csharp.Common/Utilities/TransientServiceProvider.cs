@@ -58,7 +58,8 @@ public class TransientServiceProvider : ITransientServiceProvider
 
     public T GetRequiredTransient<T>() where T : ITransientService
     {
-        using var scopedServiceProvider = _serviceScopeFactory.CreateScope();
+        // do NOT use the using statement in case the transient fetched has the IDisposable interface
+        var scopedServiceProvider = _serviceScopeFactory.CreateScope();
         return scopedServiceProvider.ServiceProvider.GetRequiredService<T>();
     }
 }
