@@ -19,6 +19,9 @@ public interface IAppDbContext
     int SaveChanges();
     DatabaseFacade Database { get; }
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
+    void StartTransaction();
+    void RollbackTransaction();
+    void CommitTransaction();
 }
 
 public interface IAppDbContextTesting
@@ -38,13 +41,28 @@ public abstract class AppDbContext : DbContext, IAppDbContext, IAppDbContextTest
         ConnectionString = dbContextOptions.ConnectionStrings?.DbContext ?? "";
     }
 
-    public void StartTestTransaction()
+    public void StartTransaction()
     {
         Transaction = Database.BeginTransaction();
     }
 
-    public void EndTestTransaction()
+    public void StartTestTransaction()
+    {
+        StartTransaction();
+    }
+
+    public void RollbackTransaction()
     {
         Database.RollbackTransaction();
+    }
+
+    public void CommitTransaction()
+    {
+        Database.CommitTransaction();
+    }
+
+    public void EndTestTransaction()
+    {
+        RollbackTransaction();
     }
 }

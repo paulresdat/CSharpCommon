@@ -31,6 +31,51 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
         DbContextOptions = dbContextOptions;
     }
 
+    protected void RunTransaction(Action<TDbContext> queryToRun, string methodName = nameof(RunTransaction))
+    {
+        RunQuery(dbContext =>
+        {
+            dbContext.StartTransaction();
+            try
+            {
+                queryToRun(dbContext);
+                dbContext.CommitTransaction();
+            }
+            catch (Exception exc)
+            {
+                dbContext.RollbackTransaction();
+                throw;
+            }
+        }, methodName);
+    }
+
+    protected T RunTransaction<T>(Func<TDbContext, T> queryToRun, string methodName = nameof(RunTransaction))
+    {
+        return RunQuery(dbContext =>
+        {
+            dbContext.StartTransaction();
+            try
+            {
+                var val = queryToRun(dbContext);
+                dbContext.CommitTransaction();
+                return val;
+            }
+            catch (Exception exc)
+            {
+                dbContext.RollbackTransaction();
+                throw;
+            }
+        }, methodName);
+    }
+
+    protected void RunQuery(Action<TDbContext> queryToRun, string methodName = nameof(RunQuery))
+    {
+        RunQuery(dbContext =>
+        {
+            queryToRun(dbContext);
+            return 1;
+        }, methodName);
+    }
     protected T RunQuery<T>(Func<TDbContext, T> queryToRun, string methodName = nameof(RunQuery))
     {
         try
