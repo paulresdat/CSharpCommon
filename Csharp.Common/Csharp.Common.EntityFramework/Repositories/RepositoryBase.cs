@@ -41,7 +41,7 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
                 queryToRun(dbContext);
                 dbContext.CommitTransaction();
             }
-            catch (Exception exc)
+            catch (Exception)
             {
                 dbContext.RollbackTransaction();
                 throw;
@@ -60,7 +60,7 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
                 dbContext.CommitTransaction();
                 return val;
             }
-            catch (Exception exc)
+            catch (Exception)
             {
                 dbContext.RollbackTransaction();
                 throw;

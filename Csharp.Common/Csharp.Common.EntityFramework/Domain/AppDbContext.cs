@@ -53,12 +53,26 @@ public abstract class AppDbContext : DbContext, IAppDbContext, IAppDbContextTest
 
     public void RollbackTransaction()
     {
-        Database.RollbackTransaction();
+        if (Transaction is not null)
+        {
+            Transaction.Rollback();
+        }
+        else
+        {
+            Database.RollbackTransaction();
+        }
     }
 
     public void CommitTransaction()
     {
-        Database.CommitTransaction();
+        if (Transaction is not null)
+        {
+            Transaction.Commit();
+        }
+        else
+        {
+            Database.CommitTransaction();
+        }
     }
 
     public void EndTestTransaction()

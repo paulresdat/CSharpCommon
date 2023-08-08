@@ -161,13 +161,56 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
         return this;
     }
 
+    private Cnsl? _cnsl;
+    protected Cnsl Cnsl
+    {
+        set => _cnsl = value;
+        get => _cnsl ??= Cnsl.Instance;
+    }
+
     public void RunAdmin()
     {
         InitializeAdminCommands(this);
         AddCommand("?", "Show Menu", (s) => PrintMenu());
-        AdminSplashScreen(new Cnsl());
+        AdminSplashScreen(Cnsl);
         PrintMenu();
         ReadFromInput();
+    }
+    
+    protected void AskForYesOrNo(string line, Action onYes, Action? onNo = null, string defaultValue = "n")
+    {
+        AskForInput(line + " [Y/n] ", s =>
+        {
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                s = defaultValue;
+            }
+
+            if (s == "Y" || s == "n")
+            {
+                switch (s)
+                {
+                    case "Y": onYes();
+                        break;
+                    case "n": onNo?.Invoke();
+                        break;
+                }
+                return true;
+            }
+
+            return false;
+        });
+    }
+
+    protected void AskForInput(string line, Func<string, bool> action)
+    {
+        bool loop;
+        do
+        {
+            Cnsl.Write(line);
+            var newLine = Console.ReadLine()?.Trim() ?? "";
+            loop = !action(newLine);
+        } while (loop);
     }
 
     private void PrintMenu()
@@ -197,7 +240,7 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
             {
                 Console.WriteLine(e.Message);
             }
-            catch (QuitOutOfAdminConsoleException e)
+            catch (QuitOutOfConsoleCommanderException e)
             {
                 // do stuff!
                 Console.WriteLine(

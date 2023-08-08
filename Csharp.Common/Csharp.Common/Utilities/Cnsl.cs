@@ -44,6 +44,12 @@ public class Cnsl
         return this;
     }
 
+    public Cnsl WriteLine(object message, ConsoleColor? foregroundColor = null, ConsoleColor? backgroundColor = null)
+    {
+        WrapPrint(message, foregroundColor, backgroundColor, Console.WriteLine);
+        return this;
+    }
+
     private void WrapPrint(object data, ConsoleColor? foregroundColor, ConsoleColor? backgroundColor, Action<string?> callback)
     {
         var isColored = foregroundColor is not null || backgroundColor is not null;
@@ -62,7 +68,7 @@ public class Cnsl
     {
         foreach (var d in message)
         {
-            WrapPrint(message, null, null, Console.WriteLine);
+            WrapPrint(d, null, null, Console.WriteLine);
         }
 
         return this;
