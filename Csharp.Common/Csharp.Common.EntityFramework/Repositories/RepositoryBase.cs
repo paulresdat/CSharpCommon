@@ -31,41 +31,100 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
         DbContextOptions = dbContextOptions;
     }
 
-    protected void RunTransaction(Action<TDbContext> queryToRun, string methodName = nameof(RunTransaction))
+    #region transaction region
+    /// <summary>
+    /// </summary>
+    /// <param name="queryToRun"></param>
+    /// <param name="methodName"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected async Task<T> RunTransactionAsync<T>(Func<IAkrrDbContextTransaction, Task<T>> queryToRun,
+        string methodName = nameof(RunTransactionAsync))
+    {
+        return await RunTransaction(queryToRun, methodName);
+    }
+
+    /// <summary>
+    /// </summary>
+    /// <param name="queryToRun"></param>
+    /// <param name="methodName"></param>
+    protected async Task RunTransactionAsync(Func<IAkrrDbContextTransaction, Task> queryToRun,
+        string methodName = nameof(RunTransactionAsync))
+    {
+        await RunTransaction(queryToRun, methodName);
+    }
+
+    /// <summary>
+    /// </summary>
+    /// <param name="queryToRun"></param>
+    /// <param name="methodName"></param>
+    protected void RunTransaction(Action<IAkrrDbContextTransaction> queryToRun, string methodName = nameof(RunTransaction))
     {
         RunQuery(dbContext =>
         {
-            dbContext.StartTransaction();
+            var transactionalDbContext = (IAkrrDbContextTransaction)dbContext;
+            transactionalDbContext.StartTransaction();
             try
             {
-                queryToRun(dbContext);
-                dbContext.CommitTransaction();
+                queryToRun(transactionalDbContext);
+                transactionalDbContext.CommitTransaction();
             }
             catch (Exception)
             {
-                dbContext.RollbackTransaction();
+                transactionalDbContext.RollbackTransaction();
                 throw;
             }
         }, methodName);
     }
 
-    protected T RunTransaction<T>(Func<TDbContext, T> queryToRun, string methodName = nameof(RunTransaction))
+    /// <summary>
+    /// </summary>
+    /// <param name="queryToRun"></param>
+    /// <param name="methodName"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T RunTransaction<T>(Func<IAkrrDbContextTransaction, T> queryToRun, string methodName = nameof(RunTransaction))
     {
         return RunQuery(dbContext =>
         {
-            dbContext.StartTransaction();
+            var transactionalDbContext = (IAkrrDbContextTransaction)dbContext;
+            transactionalDbContext.StartTransaction();
             try
             {
-                var val = queryToRun(dbContext);
-                dbContext.CommitTransaction();
+                var val = queryToRun(transactionalDbContext);
+                transactionalDbContext.CommitTransaction();
                 return val;
             }
             catch (Exception)
             {
-                dbContext.RollbackTransaction();
+                transactionalDbContext.RollbackTransaction();
                 throw;
             }
         }, methodName);
+    }
+    #endregion
+
+    #region run query
+    /// <summary>
+    /// </summary>
+    /// <param name="queryToRun"></param>
+    /// <param name="methodName"></param>
+    protected async Task RunQueryAsync(Func<TDbContext, Task> queryToRun, string methodName = nameof(RunQueryAsync))
+    {
+        // this may require more code to correctly, but for now this is good enough
+        await RunQuery(queryToRun, methodName);
+    }
+
+    /// <summary>
+    /// </summary>
+    /// <param name="queryToRun"></param>
+    /// <param name="methodName"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected async Task<T> RunQueryAsync<T>(Func<TDbContext, Task<T>> queryToRun,
+        string methodName = nameof(RunQueryAsync))
+    {
+        return await RunQuery(queryToRun, methodName);
     }
 
     protected void RunQuery(Action<TDbContext> queryToRun, string methodName = nameof(RunQuery))
@@ -139,6 +198,7 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
             throw;
         }
     }
+    #endregion
 
     #region Get Next Delay
     private int ExceptionsEncountered { get; set; }
