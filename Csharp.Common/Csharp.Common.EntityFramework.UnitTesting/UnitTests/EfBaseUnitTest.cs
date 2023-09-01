@@ -1,7 +1,7 @@
 using Csharp.Common.EntityFramework.Domain;
 using Csharp.Common.EntityFramework.Domain.Sql.Procedures;
 using Csharp.Common.Extensions;
-using Csharp.Common.UnitTesting.UnitTests;
+using Csharp.Common.UnitTesting;
 using Moq;
 
 namespace Csharp.Common.EntityFramework.UnitTesting.UnitTests;

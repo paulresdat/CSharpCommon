@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace Csharp.Common.UnitTesting.UnitTests;
+namespace Csharp.Common.UnitTesting.Utilities;
 
 /// <summary>
 /// Disable Parallelization for xUnit Tests

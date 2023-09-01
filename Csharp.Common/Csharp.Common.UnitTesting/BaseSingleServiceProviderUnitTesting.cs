@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Csharp.Common.UnitTesting.UnitTests;
+namespace Csharp.Common.UnitTesting;
 
 /// <summary>
 /// When you are making integration tests that require a single service provider, use this which

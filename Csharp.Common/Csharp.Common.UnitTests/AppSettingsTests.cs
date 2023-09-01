@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using AutoMapper;
 using Csharp.Common.AppSettings;
-using Csharp.Common.UnitTesting.UnitTests;
+using Csharp.Common.UnitTesting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

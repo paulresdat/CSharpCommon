@@ -1,4 +1,4 @@
-using Csharp.Common.UnitTesting.UnitTests;
+using Csharp.Common.UnitTesting;
 using Csharp.Common.Utilities.ThreadSafety;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

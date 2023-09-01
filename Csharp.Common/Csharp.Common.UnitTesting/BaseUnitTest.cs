@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit.Abstractions;
 
-namespace Csharp.Common.UnitTesting.UnitTests;
+namespace Csharp.Common.UnitTesting;
 
 /// <summary>
 /// <para>
