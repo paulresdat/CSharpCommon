@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.EntityFramewo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.EntityFramework.UnitTesting", "Csharp.Common.EntityFramework.UnitTesting\Csharp.Common.EntityFramework.UnitTesting.csproj", "{453AED37-0A63-4FB1-9C72-83CCE330F85C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.Unsafe", "Csharp.Common.Unsafe\Csharp.Common.Unsafe.csproj", "{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{453AED37-0A63-4FB1-9C72-83CCE330F85C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{453AED37-0A63-4FB1-9C72-83CCE330F85C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{453AED37-0A63-4FB1-9C72-83CCE330F85C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
