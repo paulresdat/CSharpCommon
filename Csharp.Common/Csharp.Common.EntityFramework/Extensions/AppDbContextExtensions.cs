@@ -46,9 +46,19 @@ public static class AppDbContextExtensions
 
     public static T ClearTable<T, TProp>(this T dbContext, Expression<Func<T, TProp>> expression) where T : IAppDbContext
     {
+        var typeName = dbContext.Database.GetDbConnection().GetType().Name;
         var tableName = ((MemberExpression) expression.Body).Member.Name;
-        dbContext.Database.ExecuteSqlRaw($"DELETE FROM [{tableName}];");
-        dbContext.Database.ExecuteSqlRaw($"DBCC CHECKIDENT ('{tableName}', RESEED, 1);");
+        if (typeName == "SqliteConnection")
+        {
+            // for now just truncate
+            dbContext.Database.ExecuteSqlRaw($"delete from {tableName}");
+            dbContext.Database.ExecuteSqlRaw($"update sqlite_sequence set seq=1 where name = '{tableName}'");
+        }
+        else
+        {
+            dbContext.Database.ExecuteSqlRaw($"DELETE FROM [{tableName}];");
+            dbContext.Database.ExecuteSqlRaw($"DBCC CHECKIDENT ('{tableName}', RESEED, 1);");
+        }
         return dbContext;
     }
 }

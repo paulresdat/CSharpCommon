@@ -30,7 +30,7 @@ public interface IAppDbContextTesting
 /// <summary>
 /// 
 /// </summary>
-public interface IAkrrDbContextTransaction : IAppDbContext
+public interface IAppDbContextTransaction : IAppDbContext
 {
     void StartTransaction();
     Task StartTransactionAsync();
@@ -48,7 +48,7 @@ public interface IAkrrDbContextTransaction : IAppDbContext
 /// <summary>
 /// 
 /// </summary>
-public abstract class AppDbContext : DbContext, IAkrrDbContextTransaction, IAppDbContextTesting
+public abstract class AppDbContext : DbContext, IAppDbContextTransaction, IAppDbContextTesting
 {
     protected readonly string ConnectionString;
     private IDbContextTransaction? Transaction { get; set; }

@@ -38,7 +38,7 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
     /// <param name="methodName"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    protected async Task<T> RunTransactionAsync<T>(Func<IAkrrDbContextTransaction, Task<T>> queryToRun,
+    protected async Task<T> RunTransactionAsync<T>(Func<IAppDbContextTransaction, Task<T>> queryToRun,
         string methodName = nameof(RunTransactionAsync))
     {
         return await RunTransaction(queryToRun, methodName);
@@ -48,7 +48,7 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
     /// </summary>
     /// <param name="queryToRun"></param>
     /// <param name="methodName"></param>
-    protected async Task RunTransactionAsync(Func<IAkrrDbContextTransaction, Task> queryToRun,
+    protected async Task RunTransactionAsync(Func<IAppDbContextTransaction, Task> queryToRun,
         string methodName = nameof(RunTransactionAsync))
     {
         await RunTransaction(queryToRun, methodName);
@@ -58,11 +58,11 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
     /// </summary>
     /// <param name="queryToRun"></param>
     /// <param name="methodName"></param>
-    protected void RunTransaction(Action<IAkrrDbContextTransaction> queryToRun, string methodName = nameof(RunTransaction))
+    protected void RunTransaction(Action<IAppDbContextTransaction> queryToRun, string methodName = nameof(RunTransaction))
     {
         RunQuery(dbContext =>
         {
-            var transactionalDbContext = (IAkrrDbContextTransaction)dbContext;
+            var transactionalDbContext = (IAppDbContextTransaction)dbContext;
             transactionalDbContext.StartTransaction();
             try
             {
@@ -83,11 +83,11 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
     /// <param name="methodName"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    protected T RunTransaction<T>(Func<IAkrrDbContextTransaction, T> queryToRun, string methodName = nameof(RunTransaction))
+    protected T RunTransaction<T>(Func<IAppDbContextTransaction, T> queryToRun, string methodName = nameof(RunTransaction))
     {
         return RunQuery(dbContext =>
         {
-            var transactionalDbContext = (IAkrrDbContextTransaction)dbContext;
+            var transactionalDbContext = (IAppDbContextTransaction)dbContext;
             transactionalDbContext.StartTransaction();
             try
             {
