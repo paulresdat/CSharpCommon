@@ -1,5 +1,8 @@
 # CSharpCommon
 
+![Supported .NET7](https://img.shields.io/badge/Supported-.NET7-blue)
+![Supported .NET8](https://img.shields.io/badge/Supported-.NET8-blue)
+
 A C# common library for bootstrapping and jump starting projects of any framework (on .NET).
 
 
