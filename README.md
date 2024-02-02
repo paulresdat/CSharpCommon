@@ -36,7 +36,7 @@ This project emphasizes "Clean Code" conventions.  There's a lot of boiler plate
 
 For now the goal is to provide a good project starter codebase that helps me stay productive.  I know for projects that I work on, this helps me get stuff done in a relatively short period of time without having to think too much about how I'll work with .NET itself to get something done.
 
-The primary use case is console apps, although the algorithms used are universal enough to be utilized in any .NET project, including Maui and of course Blazor.
+This project has been used extensively in both a console app context as well as the new Blazor application framework.  The algorithms used are universal enough to be utilized in any .NET project besides those aforementioned, including Maui and of course MVC.
 
 I'd like this to turn into a NuGet package, but I haven't thought that far ahead on this and haven't devoted enough time to this project for planning and logistics around that goal.  Maybe some day.
 
