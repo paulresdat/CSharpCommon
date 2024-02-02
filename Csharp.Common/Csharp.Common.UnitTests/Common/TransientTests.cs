@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Csharp.Common.UnitTests;
+namespace Csharp.Common.UnitTests.Common;
 
 
 public class TransientObject : ITransientService, IDisposable

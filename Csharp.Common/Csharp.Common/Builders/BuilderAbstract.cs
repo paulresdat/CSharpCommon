@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace Csharp.Common.Builders;
@@ -172,6 +173,17 @@ public abstract class BuilderAbstract<TModel, TParentBuilder>
     /// <returns></returns>
     public static implicit operator TModel(BuilderAbstract<TModel, TParentBuilder> b)
     {
+        var built = BuildModel(b);
+
+        // clear out the actions
+        b.BuildActions.Clear();
+
+        // return the concrete type
+        return built;
+    }
+
+    private static TModel BuildModel(BuilderAbstract<TModel, TParentBuilder> b)
+    {
         // invoke the creation of the object
         TModel built = b.ExistingFunction?.Invoke() ?? b.Convert();
 
@@ -181,10 +193,6 @@ public abstract class BuilderAbstract<TModel, TParentBuilder>
             buildAction.Action?.Invoke(built);
         }
 
-        // clear out the actions
-        b.BuildActions.Clear();
-
-        // return the concrete type
         return built;
     }
 
@@ -209,56 +217,45 @@ public abstract class BuilderAbstract<TModel, TParentBuilder>
     }
     
     #region custom attribute value functionality
-    /// <summary>
-    /// TODO - add documentation
-    /// This is a lesser used method and needs to be documented for specific use cases
-    /// </summary>
-    /// <param name="customAttributeName"></param>
-    /// <param name="type"></param>
-    /// <param name="propertyName"></param>
-    /// <returns></returns>
-    protected CustomAttributeData? GetCustomAttribute(string customAttributeName, Type type, string propertyName)
+    public TParentBuilder Validate()
     {
-        return type.GetProperty(propertyName)?
-            .GetCustomAttributesData()
-            .FirstOrDefault(x => x.AttributeType.Name == customAttributeName);
+        LoadCustomAttributesByPropertyName();
+        var props = typeof(TModel).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        // build a superficial object to validate against, do not return it
+        // TODO - may be good to cache the result and have build return the cached result instead?
+        // Don't optimize unless you have to in this case I think.
+        var m = BuildModel(this);
+        foreach (var prop in props)
+        {
+            if (_validatorAttributes.TryGetValue(prop.Name, out var validators))
+            {
+                foreach (var validator in validators)
+                {
+                    ValidateAgainst(prop, m, ((ValidationAttribute) validator));
+                }
+            }
+        }
+        return (TParentBuilder)this;
     }
 
-    /// <summary>
-    /// TODO - add documentation
-    /// This is a lesser used method and needs to be documented for specific use cases
-    /// </summary>
-    /// <param name="type"></param>
-    /// <param name="propertyName"></param>
-    /// <returns></returns>
-    protected int? GetStringLengthAttributeValue(Type type, string propertyName)
+    private readonly Dictionary<string, IList<Attribute>> _validatorAttributes = new();
+    private void LoadCustomAttributesByPropertyName()
     {
-        var attribute = GetCustomAttribute("StringLengthAttribute", type, propertyName);
-        if (attribute is null)
+        _validatorAttributes.Clear();
+        var dictionary = typeof(TModel).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .ToDictionary(x => x.Name,
+                x => x.GetCustomAttributes().Where(y => y.GetType().IsAssignableTo(typeof(ValidationAttribute))));
+        foreach (var kv in dictionary)
         {
-            return null;
+            _validatorAttributes.Add(kv.Key, kv.Value.ToList());
         }
-        return (int?)attribute.ConstructorArguments[0].Value;
     }
 
-    /// <summary>
-    /// TODO - add documentation
-    /// This is a lesser used method and needs to be documented for specific use cases
-    /// </summary>
-    /// <param name="value"></param>
-    /// <param name="stringLength"></param>
-    /// <param name="exceptionMessage"></param>
-    /// <exception cref="BuilderException"></exception>
-    protected void ValidateStringLength(string value, int? stringLength, string exceptionMessage)
+    private void ValidateAgainst(PropertyInfo prop, TModel m, ValidationAttribute attr)
     {
-        if (stringLength is null or 0)
+        if (!attr.IsValid(prop.GetValue(m)))
         {
-            throw new BuilderException("A null or 0 string length is not accepted as a string length value for validating.");
-        }
-
-        if (value.Length > stringLength)
-        {
-            throw new BuilderException(exceptionMessage + " :: " + value.Length + " > " + stringLength);
+            throw new BuilderException("Validation for property '" + prop.Name + "' failed");
         }
     }
     #endregion
