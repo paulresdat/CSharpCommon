@@ -17,9 +17,9 @@ public class TransientObject : ITransientService, IDisposable
     }
 }
 
-public class TransientTesting : BaseUnitTest
+public class TransientTests : BaseUnitTest
 {
-    public TransientTesting(ITestOutputHelper output)
+    public TransientTests(ITestOutputHelper output)
     {
         ServiceCollection.AddTransient<TransientObject>();
         ServiceCollection.AddSingleton<ITransientServiceProvider, TransientServiceProvider>();

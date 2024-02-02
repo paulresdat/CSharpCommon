@@ -10,9 +10,7 @@ namespace Csharp.Common.Utilities.ArgumentParsing;
 /// 3. Set the helper header if you want extra verbiage for the help screen
 /// 4. Run `ParseArguments(string[] args)` and pass the args from your Program.cs file
 /// 5. Use your parent class for holding the variables being set in your options to dictate what happens
-///    in your Program.cs logic, or main entry point logic
-///
-/// A good example is RtkRoutingSlim console app
+///    in your Program.cs logic, or main entry point logics
 /// </summary>
 public abstract class ArgumentParsing
 {
