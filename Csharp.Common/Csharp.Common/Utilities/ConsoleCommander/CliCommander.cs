@@ -9,7 +9,7 @@ namespace Csharp.Common.Utilities.ConsoleCommander;
 /// <example>
 /// <code>
 /// var adminConsole = new AdminConsoleTest();
-/// //the only exposed method outside of the object that extends the abstract class
+/// // the only exposed method outside of the object that extends the abstract class
 /// adminConsole.RunAdmin();
 /// </code>
 /// </example>
