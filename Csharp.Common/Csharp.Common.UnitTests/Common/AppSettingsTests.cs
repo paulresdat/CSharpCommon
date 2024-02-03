@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace Csharp.Common.UnitTests;
+namespace Csharp.Common.UnitTests.Common;
 
 public class TestAppSettings1
 {

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 #if PCL
@@ -190,6 +191,7 @@ using MessageLocalizerConverter = System.Converter<string, string>;
 
 namespace Csharp.Common.Utilities.ArgumentParsing;
 
+[ExcludeFromCodeCoverage]
 static class StringCoda {
 
 	public static IEnumerable<string> WrappedLines (string self, params int[] widths)
@@ -278,6 +280,7 @@ static class StringCoda {
 	}
 }
 
+[ExcludeFromCodeCoverage]
 public class OptionValueCollection : IList, IList<string> {
 
 	List<string> values = new List<string> ();
@@ -368,6 +371,7 @@ public class OptionValueCollection : IList, IList<string> {
 	}
 }
 
+[ExcludeFromCodeCoverage]
 public class OptionContext {
 	private Option                option;
 	private string                name;
@@ -411,6 +415,7 @@ public enum OptionValueType {
 	Required,
 }
 
+[ExcludeFromCodeCoverage]
 public abstract class Option {
 	string prototype, description;
 	string[] names;
@@ -629,6 +634,7 @@ public abstract class Option {
 	}
 }
 
+[ExcludeFromCodeCoverage]
 public abstract class ArgumentSource {
 
 	protected ArgumentSource ()
@@ -696,6 +702,7 @@ public abstract class ArgumentSource {
 }
 
 #if !PCL || NETSTANDARD1_3
+[ExcludeFromCodeCoverage]
 public class ResponseFileSource : ArgumentSource {
 
 	public override string[] GetNames ()
@@ -722,6 +729,8 @@ public class ResponseFileSource : ArgumentSource {
 #if !PCL
 [Serializable]
 #endif
+
+[ExcludeFromCodeCoverage]
 public class OptionException : Exception {
 	private string option;
 
@@ -768,6 +777,7 @@ public class OptionException : Exception {
 
 public delegate void OptionAction<TKey, TValue> (TKey key, TValue value);
 
+[ExcludeFromCodeCoverage]
 public class OptionSet : KeyedCollection<string, Option>
 {
 	public OptionSet ()
@@ -1467,6 +1477,7 @@ public class OptionSet : KeyedCollection<string, Option>
 	}
 }
 
+[ExcludeFromCodeCoverage]
 public class Command
 {
 	public      string                              Name            {get;}
@@ -1511,6 +1522,7 @@ public class Command
 	}
 }
 
+[ExcludeFromCodeCoverage]
 class CommandOption : Option
 {
 	public      Command             Command         {get;}
@@ -1534,6 +1546,7 @@ class CommandOption : Option
 	}
 }
 
+[ExcludeFromCodeCoverage]
 class HelpOption : Option
 {
 	Option      option;
@@ -1554,6 +1567,7 @@ class HelpOption : Option
 	}
 }
 
+[ExcludeFromCodeCoverage]
 class CommandOptionSet : OptionSet
 {
 	CommandSet  commands;
@@ -1597,6 +1611,7 @@ class CommandOptionSet : OptionSet
 	}
 }
 
+[ExcludeFromCodeCoverage]
 public class CommandSet : KeyedCollection<string, Command>
 {
 	readonly    string          suite;
@@ -1922,6 +1937,7 @@ public class CommandSet : KeyedCollection<string, Command>
 	}
 }
 
+[ExcludeFromCodeCoverage]
 public class HelpCommand : Command
 {
 	public HelpCommand ()
