@@ -15,16 +15,16 @@ public class BuilderFactory
 
     public T Fetch<T>() where T : class, new()
     {
-        if (typeof(T).GetInterfaces().Contains(typeof(IBuilder)))
-        {
-            return new T();
-        }
-        
         if (typeof(T).GetInterfaces().Contains(typeof(IBuilderServiceScope)))
         {
             var builder = new T();
             ((IBuilderServiceScope) builder).RegisterServiceScope(_serviceScopeFactory);
             return builder;
+        }
+
+        if (typeof(T).GetInterfaces().Contains(typeof(IBuilder)))
+        {
+            return new T();
         }
 
         throw new BuilderFactoryException(
