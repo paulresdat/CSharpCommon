@@ -7,7 +7,7 @@ public class Cnsl
     private ConsoleColor CurrentForeground { get; set; }
     private ConsoleColor CurrentBackground { get; set; }
 
-    public static Cnsl Instance => new Cnsl(); 
+    public static Cnsl Instance => new(); 
 
     public Cnsl Reset()
     {
