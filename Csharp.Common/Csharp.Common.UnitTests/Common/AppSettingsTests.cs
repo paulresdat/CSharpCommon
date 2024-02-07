@@ -128,7 +128,7 @@ public class AppSettingsTests : BaseUnitTest
         File.Move("appsettings.json", "appsettings.cache.json");
         File.Move("output.tmp.txt", "appsettings.json");
 
-        Thread.Sleep(1000);
+        Thread.Sleep(5000);
         obj = watcher.Settings;
         Assert.Equal("789", obj.Attribute1);
         Assert.Equal("345", obj.Attribute2);
@@ -136,6 +136,7 @@ public class AppSettingsTests : BaseUnitTest
 
         File.Delete("appsettings.json");
         File.Move("appsettings.cache.json", "appsettings.json");
+        Thread.Sleep(5000);
     }
     
     
@@ -183,7 +184,7 @@ public class AppSettingsTests : BaseUnitTest
         File.Move("appsettings.json", "appsettings.cache.json");
         File.Move("output.tmp.txt", "appsettings.json");
 
-        Thread.Sleep(1000);
+        Thread.Sleep(5000);
         obj = watcher.Settings;
         Assert.Equal("789", obj.Attribute1);
         Assert.Equal("345", obj.Attribute2);
@@ -191,6 +192,7 @@ public class AppSettingsTests : BaseUnitTest
 
         File.Delete("appsettings.json");
         File.Move("appsettings.cache.json", "appsettings.json");
+        Thread.Sleep(5000);
     }
 
     [Fact(DisplayName =

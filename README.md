@@ -1,7 +1,13 @@
 # CSharpCommon
 
 ![Supported .NET8](https://img.shields.io/badge/Supported-.NET8-blue)
+[![Build Status](https://dev.azure.com/paulcarlton/Csharp.Common/_apis/build/status%2Fpaulresdat.CSharpCommon?branchName=main)](https://dev.azure.com/paulcarlton/Csharp.Common/_build/latest?definitionId=1&branchName=main)
+
+
 ![Supported .NET7](https://img.shields.io/badge/Supported-.NET7-blue)
+[![Build Status](https://dev.azure.com/paulcarlton/Csharp.Common/_apis/build/status%2Fpaulresdat.CSharpCommon?branchName=net7)](https://dev.azure.com/paulcarlton/Csharp.Common/_build/latest?definitionId=1&branchName=net7)
+
+
 ![Not Supported .NET6](https://img.shields.io/badge/Unsupported-.NET6-red)
 
 A C# common library for bootstrapping and jump starting projects of any framework (on .NET).
