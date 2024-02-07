@@ -12,12 +12,15 @@ public interface IThreadSafeLock
     void TryEnterReadWriteLock(Action action, TimeSpan tryTimeSpan);
     T TryEnterReadWriteLock<T>(Func<T> action, TimeSpan tryTimeSpan);
 
+    void TryEnterReadLock(Action action, int millisecondsTimeout);
+    T TryEnterReadLock<T>(Func<T> action, int millisecondsTimeout);
+    void TryEnterReadWriteLock(Action action, int millisecondsTimeout);
+    T TryEnterReadWriteLock<T>(Func<T> action, int millisecondsTimeout);
+
     void EnterUpgradeableReadLock(Action action);
     T EnterUpgradeableReadLock<T>(Func<T> action);
     void TryEnterUpgradeableReadLock(Action action, TimeSpan tryTimeSpan);
     T TryEnterUpgradeableReadLock<T>(Func<T> action, TimeSpan tryTimeSpan);
-
-    bool InRead { get; }
-    bool InWrite { get; }
-    bool InReadOrWrite { get; }
+    void TryEnterUpgradeableReadLock(Action action, int millisecondsTimeout);
+    T TryEnterUpgradeableReadLock<T>(Func<T> action, int millisecondsTimeout);
 }

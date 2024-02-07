@@ -2,9 +2,9 @@ namespace Csharp.Common.Utilities.ThreadSafety;
 
 public class ThreadSafeLock : ThreadSafe, IThreadSafeLock
 {
-    public new bool InRead => base.InRead;
-    public new bool InWrite => base.InWrite;
-    public new bool InReadOrWrite => base.InReadOrWrite;
+    // public new bool InRead => base.InRead;
+    // public new bool InWrite => base.InWrite;
+    // public new bool InReadOrWrite => base.InReadOrWrite;
 
     public new void EnterReadLock(Action action)
     {
@@ -46,6 +46,26 @@ public class ThreadSafeLock : ThreadSafe, IThreadSafeLock
         return base.TryEnterReadWriteLock(action, tryTimeSpan);
     }
 
+    public new void TryEnterReadLock(Action action, int millisecondsTimeout)
+    {
+        base.TryEnterReadLock(action, millisecondsTimeout);
+    }
+
+    public new T TryEnterReadLock<T>(Func<T> action, int millisecondsTimeout)
+    {
+        return base.TryEnterReadLock(action, millisecondsTimeout);
+    }
+
+    public new void TryEnterReadWriteLock(Action action, int millisecondsTimeout)
+    {
+        base.TryEnterReadWriteLock(action, millisecondsTimeout);
+    }
+
+    public new T TryEnterReadWriteLock<T>(Func<T> action, int millisecondsTimeout)
+    {
+        return base.TryEnterReadWriteLock(action, millisecondsTimeout);
+    }
+
     public new void EnterUpgradeableReadLock(Action action)
     {
         base.EnterUpgradeableReadLock(action);
@@ -64,5 +84,15 @@ public class ThreadSafeLock : ThreadSafe, IThreadSafeLock
     public new T TryEnterUpgradeableReadLock<T>(Func<T> action, TimeSpan tryTimeSpan)
     {
         return base.TryEnterUpgradeableReadLock(action, tryTimeSpan);
+    }
+
+    public new void TryEnterUpgradeableReadLock(Action action, int millisecondsTimeout)
+    {
+        base.TryEnterUpgradeableReadLock(action, millisecondsTimeout);
+    }
+
+    public new T TryEnterUpgradeableReadLock<T>(Func<T> action, int millisecondsTimeout)
+    {
+        return base.TryEnterUpgradeableReadLock(action, millisecondsTimeout);
     }
 }

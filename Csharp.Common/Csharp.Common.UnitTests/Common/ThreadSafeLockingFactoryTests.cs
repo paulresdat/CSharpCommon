@@ -1,6 +1,8 @@
 using Csharp.Common.UnitTesting;
 using Csharp.Common.Utilities.ThreadSafety;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -90,16 +92,108 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         });
     }
 
+    private class ThreadLockerLogger : ThreadSafe<ThreadLockerLogger>
+    {
+        public ThreadLockerLogger(ILogger<ThreadLockerLogger> logger) : base(logger)
+        {
+        }
+
+        public new void EnterReadLock(Action action)
+        {
+            base.EnterReadLock(action);
+        }
+    }
+
     private class ThreadLocker : ThreadSafe
     {
+        public new void EnterReadLock(Action action)
+        {
+            base.EnterReadLock(action);
+        }
+
+        public new T EnterReadLock<T>(Func<T> action)
+        {
+            return base.EnterReadLock(action);
+        }
+
+        public new void TryEnterReadLock(Action action, TimeSpan timeSpan)
+        {
+            base.TryEnterReadLock(action, timeSpan);
+        }
+
+        public new T TryEnterReadLock<T>(Func<T> action, TimeSpan timeSpan)
+        {
+            return base.TryEnterReadLock(action, timeSpan);
+        }
+
+        public new void TryEnterReadLock(Action action, int timeout)
+        {
+            base.TryEnterReadLock(action, timeout);
+        }
+
+        public new T TryEnterReadLock<T>(Func<T> action, int timeout)
+        {
+            return base.TryEnterReadLock(action, timeout);
+        }
+
         public new void EnterUpgradeableReadLock(Action action)
         {
             base.EnterUpgradeableReadLock(action);
         }
 
+        public new T EnterUpgradeableReadLock<T>(Func<T> func)
+        {
+            return base.EnterUpgradeableReadLock(func);
+        }
+
+        public new void TryEnterUpgradeableReadLock(Action action, TimeSpan timeSpan)
+        {
+            base.TryEnterUpgradeableReadLock(action, timeSpan);
+        }
+
+        public new T TryEnterUpgradeableReadLock<T>(Func<T> func, TimeSpan timeSpan)
+        {
+            return base.TryEnterUpgradeableReadLock(func, timeSpan);
+        }
+
+        public new void TryEnterUpgradeableReadLock(Action action, int timeout)
+        {
+            base.TryEnterUpgradeableReadLock(action, timeout);
+        }
+
+        public new T TryEnterUpgradeableReadLock<T>(Func<T> func, int timeout)
+        {
+            return base.TryEnterUpgradeableReadLock(func, timeout);
+        }
+
         public new void EnterReadWriteLock(Action action)
         {
             base.EnterReadWriteLock(action);
+        }
+        
+        public new T EnterReadWriteLock<T>(Func<T> func)
+        {
+            return base.EnterReadWriteLock(func);
+        }
+
+        public new void TryEnterReadWriteLock(Action action, TimeSpan timeSpan)
+        {
+            base.TryEnterReadWriteLock(action, timeSpan);
+        }
+        
+        public new T TryEnterReadWriteLock<T>(Func<T> func, TimeSpan timeSpan)
+        {
+            return base.TryEnterReadWriteLock(func, timeSpan);
+        }
+
+        public new void TryEnterReadWriteLock(Action action, int timeout)
+        {
+            base.TryEnterReadWriteLock(action, timeout);
+        }
+        
+        public new T TryEnterReadWriteLock<T>(Func<T> func, int timeout)
+        {
+            return base.TryEnterReadWriteLock(func, timeout);
         }
     }
 
@@ -125,6 +219,147 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
                 });
             });
         });
+    }
+
+    [Fact(DisplayName = "003 Can read from a lock and write to a lock without collisions")]
+    public void T003()
+    {
+        var threadLocker = new ThreadLocker();
+
+        var sensitive = new List<int> { 0, 0 };
+        var task1 = Task.Run(() =>
+        {
+            for (var i = 0; i < 1000000; i++)
+            {
+                threadLocker.EnterReadLock(() =>
+                {
+                    Assert.Equal(sensitive[0], sensitive[1]);
+                });
+            }
+        });
+
+        var task2 = Task.Run(() =>
+        {
+            for (var i = 0; i < 1000000; i++)
+            {
+                threadLocker.EnterReadLock(() =>
+                {
+                    Assert.Equal(sensitive[0], sensitive[1]);
+                });
+            }
+        });
+
+        var task3 = Task.Run(() =>
+        {
+            for (var i = 0; i < 500000; i++)
+            {
+                threadLocker.EnterReadWriteLock(() =>
+                {
+                    sensitive[0]++;
+                    sensitive[1]++;
+                });
+            }
+        });
+
+        Task.WaitAll(task1, task2, task3);
+    }
+
+    [Fact(DisplayName = "004 all calls with a return function indeed returns the result")]
+    public void T004()
+    {
+        var threadLock = new ThreadLocker();
+
+        threadLock.EnterReadLock(() => 1).Should().Be(1);
+        threadLock.TryEnterReadLock(() => 1, TimeSpan.FromSeconds(1)).Should().Be(1);
+        threadLock.TryEnterReadLock(() => 1, 100).Should().Be(1);
+        threadLock.EnterReadWriteLock(() => 1).Should().Be(1);
+        threadLock.TryEnterReadWriteLock(() => 1, TimeSpan.FromSeconds(1)).Should().Be(1);
+        threadLock.TryEnterReadWriteLock(() => 1, 100).Should().Be(1);
+        threadLock.EnterUpgradeableReadLock(() => 1).Should().Be(1);
+        threadLock.TryEnterUpgradeableReadLock(() => 1, TimeSpan.FromSeconds(1)).Should().Be(1);
+        threadLock.TryEnterUpgradeableReadLock(() => 1, 100).Should().Be(1);
+    }
+
+    private class CustomException : Exception
+    {
+        
+    }
+
+    [Fact(DisplayName = "005 Thread safe locking factory will return the data associated to the return value of the give function")]
+    public void T000()
+    {
+        var sp = GetNewServiceProvider;
+        var t = sp.GetRequiredService<IThreadSafeLockingFactory>();
+
+        t.EnterReadLock("one", () => 1).Should().Be(1);
+        t.TryEnterReadLock("one", () => 1, 100).Should().Be(1);
+        t.TryEnterReadLock("one", () => 1, TimeSpan.FromSeconds(1)).Should().Be(1);
+
+        t.EnterReadWriteLock("one", () => 1).Should().Be(1);
+        t.TryEnterReadWriteLock("one", () => 1, 100).Should().Be(1);
+        t.TryEnterReadWriteLock("one", () => 1, TimeSpan.FromSeconds(1)).Should().Be(1);
+
+        t.EnterUpgradeableReadLock("one", () => 1).Should().Be(1);
+        t.TryEnterUpgradeableReadLock("one", () => 1, 100).Should().Be(1);
+        t.TryEnterUpgradeableReadLock("one", () => 1, TimeSpan.FromSeconds(1)).Should().Be(1);
+    }
+
+    [Fact(DisplayName = "005 A lock will rethrow any exception that happens within the function that was passed")]
+    public void T005()
+    {
+        var threadLock = new ThreadLocker();
+        Assert.Throws<CustomException>(() => threadLock.EnterReadLock(() => throw new CustomException()));
+        Assert.Throws<CustomException>(() => threadLock.EnterReadWriteLock(() => throw new CustomException()));
+        Assert.Throws<CustomException>(() => threadLock.EnterUpgradeableReadLock(() => throw new CustomException()));
+        Assert.Throws<CustomException>(() => threadLock.TryEnterReadLock(() => throw new CustomException(), TimeSpan.FromSeconds(1)));
+        Assert.Throws<CustomException>(() => threadLock.TryEnterReadLock(() => throw new CustomException(), 100));
+        Assert.Throws<CustomException>(() => threadLock.TryEnterReadWriteLock(() => throw new CustomException(), TimeSpan.FromSeconds(1)));
+        Assert.Throws<CustomException>(() => threadLock.TryEnterReadWriteLock(() => throw new CustomException(), 100));
+        Assert.Throws<CustomException>(() => threadLock.TryEnterUpgradeableReadLock(() => throw new CustomException(), TimeSpan.FromSeconds(1)));
+        Assert.Throws<CustomException>(() => threadLock.TryEnterUpgradeableReadLock(() => throw new CustomException(), 100));
+    }
+
+    [Fact(DisplayName = "006 All Locking Factory methods will throw all exception to the top")]
+    public void T006()
+    {
+        var sp = GetNewServiceProvider;
+        var locker = sp.GetRequiredService<IThreadSafeLockingFactory>();
+
+        Assert.Throws<CustomException>(() =>
+            locker.EnterReadLock("one", () => throw new CustomException()));
+        Assert.Throws<CustomException>(() =>
+            locker.TryEnterReadLock("one", () => throw new CustomException(), 100));
+        Assert.Throws<CustomException>(() =>
+            locker.TryEnterReadLock("one", () => throw new CustomException(), TimeSpan.FromSeconds(1)));
+
+        Assert.Throws<CustomException>(() =>
+            locker.EnterReadWriteLock("one", () => throw new CustomException()));
+        Assert.Throws<CustomException>(() =>
+            locker.TryEnterReadWriteLock("one", () => throw new CustomException(), 100));
+        Assert.Throws<CustomException>(() =>
+            locker.TryEnterReadWriteLock("one", () => throw new CustomException(), TimeSpan.FromSeconds(1)));
+
+        Assert.Throws<CustomException>(() =>
+            locker.EnterUpgradeableReadLock("one", () => throw new CustomException()));
+        Assert.Throws<CustomException>(() =>
+            locker.TryEnterUpgradeableReadLock("one", () => throw new CustomException(), 100));
+        Assert.Throws<CustomException>(() =>
+            locker.TryEnterUpgradeableReadLock("one", () => throw new CustomException(), TimeSpan.FromSeconds(1)));
+    }
+
+    [Fact(DisplayName = "007 When a logger thread locker is used and exception is thrown, indeed the exception is logged")]
+    public void T007()
+    {
+        AddMeltLogger<ThreadLockerLogger>();
+        ServiceCollection.AddSingleton<ThreadLockerLogger>();
+        var sp = GetNewServiceProvider;
+        var locker = sp.GetRequiredService<ThreadLockerLogger>();
+
+        Assert.Throws<CustomException>(() => 
+            locker.EnterReadLock(() => throw new CustomException()));
+
+        LogEntries.Should().NotBeEmpty();
+        LogEntries.Should().Contain(x => x.Message!.Contains("An exception has occurred"));
     }
 
     private class ThreadSafeOnLists
