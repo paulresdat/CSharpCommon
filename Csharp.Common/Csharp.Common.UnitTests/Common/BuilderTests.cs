@@ -96,9 +96,60 @@ public class BuilderTests : BaseUnitTest
         dto.GetDbContext.GetType().Name.Should().Be(nameof(BuilderDbConnectorContextMock));
     }
 
+    [Fact(DisplayName = "008 Builder factory can fetch a builder of the IBuilder type without a service scope")]
+    public void T008()
+    {
+        ServiceCollection.AddSingleton<BuilderFactoryOne>();
+
+        var sp = GetNewServiceProvider;
+        var bf = sp.GetRequiredService<BuilderFactoryOne>();
+        var builder = bf.Fetch<GenericDtoWithCustomAttributeBuilder>();
+        builder.Should().NotBeNull();
+    }
+
+    [Fact(DisplayName = "009 Builder factory can fetch a builder of the IBuilderServiceScope type and the service scope should return it")]
+    public void T009()
+    {
+        ServiceCollection.AddSingleton<BuilderFactoryOne>();
+
+        var sp = GetNewServiceProvider;
+        var bf = sp.GetRequiredService<BuilderFactoryOne>();
+        var builder = bf.Fetch<GenericDtoWithCustomAttributeBuilder>();
+        builder.Should().NotBeNull();
+    }
+
+    [Fact(DisplayName = "010 Builder factory can fetch a builder of the IBuilderServiceScope type and the service scope should return it")]
+    public void T010()
+    {
+        ServiceCollection.AddSingleton<BuilderFactoryOne>();
+        ServiceCollection.AddSingleton<GenericWithRegexBuilder>();
+
+        var sp = GetNewServiceProvider;
+        var bf = sp.GetRequiredService<BuilderFactoryOne>();
+        var builder = bf.Fetch<GenericWithRegexBuilder>();
+        builder.Should().NotBeNull();
+        builder.ServiceScopeRegistered.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "010 Builder factory will throw an exception if the builder is not of the expected interface types")]
+    public void T011()
+    {
+        ServiceCollection.AddSingleton<BuilderFactoryOne>();
+
+        var sp = GetNewServiceProvider;
+        var bf = sp.GetRequiredService<BuilderFactoryOne>();
+        Assert.Throws<BuilderFactoryException>(() => bf.Fetch<GenericDtoWithCustomAttributeDto>());
+    }
+
+    private class BuilderFactoryOne : BuilderFactory
+    {
+        public BuilderFactoryOne(IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
+        {
+        }
+    }
+
     private class BuilderDbConnectorContextMock
     {
-        
     }
 
     private class BuilderConnector : BuilderDbConnector<BuilderDbConnectorContextMock, GenericDto, BuilderConnector>
@@ -136,8 +187,9 @@ public class BuilderTests : BaseUnitTest
         public string RegexString { get; set; } = string.Empty;
     }
 
-    private class GenericWithRegexBuilder : Builder<GenericWithRegex, GenericWithRegexBuilder>
+    private class GenericWithRegexBuilder : Builder<GenericWithRegex, GenericWithRegexBuilder>, IBuilderServiceScope
     {
+        public bool ServiceScopeRegistered { get; set; }
         public override GenericWithRegexBuilder WithDefaults()
         {
             With(x => x.RegexString = string.Empty);
@@ -148,6 +200,11 @@ public class BuilderTests : BaseUnitTest
         {
             With(x => x.RegexString = stringData);
             return this;
+        }
+
+        public void RegisterServiceScope(IServiceScopeFactory serviceScopeFactory)
+        {
+            ServiceScopeRegistered = true;
         }
     }
 

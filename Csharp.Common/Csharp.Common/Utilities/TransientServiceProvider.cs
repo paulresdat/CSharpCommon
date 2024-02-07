@@ -53,7 +53,8 @@ public class TransientServiceProvider : ITransientServiceProvider
 
     public T? GetTransient<T>() where T : ITransientService
     {
-        throw new NotImplementedException();
+        var scopedServiceProvider = _serviceScopeFactory.CreateScope();
+        return scopedServiceProvider.ServiceProvider.GetService<T>();
     }
 
     public T GetRequiredTransient<T>() where T : ITransientService
