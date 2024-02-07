@@ -51,14 +51,36 @@ public delegate void DebugOutputDelegate(string message);
 /// </summary>
 public abstract class DebugOutput : IDebugOutput
 {
+    private string? _preamble;
+    private readonly Type _pT;
     public event DebugOutputDelegate? DebugOutputDelegate;
-    protected string Preamble { get; set; } = "";
-    private string Pre => _pT?.Name ?? "(n/a): ";
-    private readonly Type? _pT;
+
+    private string Pre
+    {
+        get
+        {
+            if (_preamble is not null)
+            {
+                return _preamble == string.Empty ? string.Empty : _preamble + ": ";
+            }
+
+            return _pT.Name + ": ";
+        }
+    }
 
     public DebugOutput()
     {
-        _pT = GetType().BaseType;
+        _pT = GetType();
+    }
+
+    public void SetPreamble(string preamble)
+    {
+        if (preamble == string.Empty)
+        {
+            _preamble = string.Empty;
+        }
+
+        _preamble = preamble;
     }
 
     public void ConsoleWrite(params object[] data)
@@ -80,7 +102,6 @@ public abstract class DebugOutput<T> : DebugOutput
 {
     protected DebugOutput()
     {
-        var t = typeof(T).Name;
-        Preamble = t + ": ";
+        SetPreamble(typeof(T).Name);
     }
 }

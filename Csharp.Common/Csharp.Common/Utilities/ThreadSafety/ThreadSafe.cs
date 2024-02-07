@@ -79,19 +79,18 @@ public abstract class ThreadSafe
 {
     private readonly ReaderWriterLockSlim _lockSlim = new();
     protected ILogger? Logger { get; set; }
-    // private readonly string _lockRecursionText;
     private const string LockRecursionText = 
         "A read lock recursion exception has been thrown while writing and is a critical error for the service to continue running, shutting down";
 
-    /// <summary>
-    /// Can be an extremely important element to check for.  Returns whether the object is on read a lock.
-    /// </summary>
-    protected bool InRead => _lockSlim.IsReadLockHeld;
-    /// <summary>
-    /// Can be an extremely important element to check for.  Returns whether the object is on read/write a lock.
-    /// </summary>
-    protected bool InWrite => _lockSlim.IsWriteLockHeld;
-    protected bool InReadOrWrite => InRead || InWrite;
+    // /// <summary>
+    // /// Can be an extremely important element to check for.  Returns whether the object is on read a lock.
+    // /// </summary>
+    // protected bool InRead => _lockSlim.IsReadLockHeld;
+    // /// <summary>
+    // /// Can be an extremely important element to check for.  Returns whether the object is on read/write a lock.
+    // /// </summary>
+    // protected bool InWrite => _lockSlim.IsWriteLockHeld;
+    // protected bool InReadOrWrite => InRead || InWrite;
 
     /// <summary>
     /// Allows for a void read, in case you're manipulating data outside the scope of the read lock
@@ -154,6 +153,16 @@ public abstract class ThreadSafe
     }
 
     /// <summary>
+    /// Try to enter a read lock with a int millisecond timeout
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="millisecondsTimeout"></param>
+    protected void TryEnterReadLock(Action action, int millisecondsTimeout)
+    {
+        TryEnterLock(LockType.TryRead, action, null, millisecondsTimeout);
+    }
+
+    /// <summary>
     /// Try to enter a read lock with a timespan timeout with expected output from the passed action
     /// </summary>
     /// <param name="action"></param>
@@ -163,6 +172,18 @@ public abstract class ThreadSafe
     protected T TryEnterReadLock<T>(Func<T> action, TimeSpan tryTimeSpan)
     {
         return TryEnterLock(LockType.TryRead, action, tryTimeSpan);
+    }
+
+    /// <summary>
+    /// Try to enter a read lock with an integer millisecond timeout with expected output from the passed action
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="millisecondsTimeout"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T TryEnterReadLock<T>(Func<T> action, int millisecondsTimeout)
+    {
+        return TryEnterLock(LockType.TryRead, action, null, millisecondsTimeout);
     }
 
     /// <summary>
@@ -176,6 +197,16 @@ public abstract class ThreadSafe
     }
 
     /// <summary>
+    /// Try to enter a read write lock with an integer millisecond timeout
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="millisecondsTimeout"></param>
+    protected void TryEnterReadWriteLock(Action action, int millisecondsTimeout)
+    {
+        TryEnterLock(LockType.TryWrite, action, null, millisecondsTimeout);
+    }
+
+    /// <summary>
     /// Try to enter a read write lock with a timespan and a return value from the passed action
     /// </summary>
     /// <param name="action"></param>
@@ -185,6 +216,18 @@ public abstract class ThreadSafe
     protected T TryEnterReadWriteLock<T>(Func<T> action, TimeSpan tryTimeSpan)
     {
         return TryEnterLock(LockType.TryWrite, action, tryTimeSpan);
+    }
+
+    /// <summary>
+    /// Try to enter a read write lock with a timespan and a return value from the passed action
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="millisecondTimeout"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T TryEnterReadWriteLock<T>(Func<T> action, int millisecondTimeout)
+    {
+        return TryEnterLock(LockType.TryWrite, action, null, millisecondTimeout);
     }
 
     /// <summary>
@@ -236,6 +279,16 @@ public abstract class ThreadSafe
     }
 
     /// <summary>
+    /// Try to enter an upgradeable lock with a timespan timeout
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="millisecondsTimeout"></param>
+    protected void TryEnterUpgradeableReadLock(Action action, int millisecondsTimeout)
+    {
+        TryEnterLock(LockType.TryUpgradeableRead, action, null, millisecondsTimeout);
+    }
+
+    /// <summary>
     /// Try to enter an upgradeable lock with a timespan timeout and a returning value from the passed action
     /// </summary>
     /// <param name="action"></param>
@@ -247,8 +300,20 @@ public abstract class ThreadSafe
         return TryEnterLock(LockType.TryUpgradeableRead, action, tryTimeSpan);
     }
 
+    /// <summary>
+    /// Try to enter an upgradeable lock with a integer timeout and a returning value from the passed action
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="millisecondsTimeout"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    protected T TryEnterUpgradeableReadLock<T>(Func<T> action, int millisecondsTimeout)
+    {
+        return TryEnterLock(LockType.TryUpgradeableRead, action, null, millisecondsTimeout);
+    }
+
     #region private functions that take out the boiler plate of the try catches
-    private void EnterLockByType(LockType lockType, TimeSpan? tryEnterLockTimeSpan = null)
+    private void EnterLockByType(LockType lockType, TimeSpan? tryEnterLockTimeSpan = null, int? millisecondsTimeout = null)
     {
         switch (lockType)
         {
@@ -262,20 +327,53 @@ public abstract class ThreadSafe
                 _lockSlim.EnterUpgradeableReadLock();
                 break;
             case LockType.TryUpgradeableRead:
-                _lockSlim.TryEnterUpgradeableReadLock(tryEnterLockTimeSpan ?? throw new InvalidOperationException());
+                if (millisecondsTimeout is not null)
+                {
+                    _lockSlim.TryEnterUpgradeableReadLock(
+                        millisecondsTimeout ?? throw new InvalidOperationException(
+                            "Try upgradable locks requires an integer or timespan value for the timeout limit"));
+                }
+                else
+                {
+                    _lockSlim.TryEnterUpgradeableReadLock(
+                        tryEnterLockTimeSpan ?? throw new InvalidOperationException(
+                            "Try upgradable locks requires an integer or timespan value for the timeout limit"));
+                }
                 break;
             case LockType.TryRead:
-                _lockSlim.TryEnterReadLock(tryEnterLockTimeSpan ?? throw new InvalidOperationException());
+                if (millisecondsTimeout is not null)
+                {
+                    _lockSlim.TryEnterReadLock(
+                        millisecondsTimeout ?? throw new InvalidOperationException(
+                            "Try read locks requires an integer or timespan value for the timeout limit"));
+                }
+                else
+                {
+                    _lockSlim.TryEnterReadLock(
+                        tryEnterLockTimeSpan ?? throw new InvalidOperationException(
+                            "Try read locks requires an integer or timespan value for the timeout limit"));
+                }
                 break;
             case LockType.TryWrite:
-                _lockSlim.TryEnterWriteLock(tryEnterLockTimeSpan ?? throw new InvalidOperationException());
+                if (millisecondsTimeout is not null)
+                {
+                    _lockSlim.TryEnterWriteLock(
+                        millisecondsTimeout ?? throw new InvalidOperationException(
+                            "Try write locks require an integer or timespan value for the timeout limit"));
+                }
+                else
+                {
+                    _lockSlim.TryEnterWriteLock(
+                        tryEnterLockTimeSpan ?? throw new InvalidOperationException(
+                            "Try write locks require an integer or timespan value for the timeout limit"));
+                }
                 break;
             default:
                 throw new InvalidOperationException("Unknown lock type: " + lockType);
         }
     }
 
-    private void ExitLockByType(LockType lockType, TimeSpan? tryEnterLockTimeSpan = null)
+    private void ExitLockByType(LockType lockType)
     {
         switch (lockType)
         {
@@ -296,11 +394,11 @@ public abstract class ThreadSafe
         }
     }
 
-    private void TryEnterLock(LockType lockType, Action action, TimeSpan? tryEnterLockTimeSpan = null)
+    private void TryEnterLock(LockType lockType, Action action, TimeSpan? tryEnterLockTimeSpan = null, int? millisecondsTimeout = null)
     {
         try
         {
-            EnterLockByType(lockType);
+            EnterLockByType(lockType, tryEnterLockTimeSpan, millisecondsTimeout);
 
             try
             {
@@ -314,7 +412,7 @@ public abstract class ThreadSafe
         catch (LockRecursionException e)
         {
             Logger?.LogCritical(LockRecursionText);
-            Logger?.LogCritical(e, "Exception and stacktrace");
+            Logger?.LogCritical("Exception and stacktrace: {Exception}, {StackTrace}", e.Message, e.StackTrace);
             throw;
         }
         catch (Exception e)
@@ -324,11 +422,11 @@ public abstract class ThreadSafe
         }
     }
 
-    private T TryEnterLock<T>(LockType lockType, Func<T> action, TimeSpan? tryEnterLockTimeSpan = null)
+    private T TryEnterLock<T>(LockType lockType, Func<T> action, TimeSpan? tryEnterLockTimeSpan = null, int? millisecondsTimeout = null)
     {
         try
         {
-            EnterLockByType(lockType);
+            EnterLockByType(lockType, tryEnterLockTimeSpan, millisecondsTimeout);
 
             try
             {
@@ -342,12 +440,13 @@ public abstract class ThreadSafe
         catch (LockRecursionException e)
         {
             Logger?.LogCritical(LockRecursionText);
-            Logger?.LogCritical(e, "Exception and stacktrace");
+            Logger?.LogCritical("Exception and stacktrace: {Exception}, {StackTrace}", e.Message, e.StackTrace);
             throw;
         }
         catch (Exception e)
         {
-            Logger?.LogCritical("An exception has occurred: {Exception}, {StackTrace}", e.Message, e.StackTrace);
+            Logger?.LogCritical("An exception has occurred: {Exception}, {StackTrace}",
+                e.Message, e.StackTrace);
             throw;
         }
     }
