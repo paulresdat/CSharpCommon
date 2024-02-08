@@ -79,7 +79,6 @@ public abstract class ThreadSafe
 {
     private readonly ReaderWriterLockSlim _lockSlim = new();
     protected ILogger? Logger { get; set; }
-    // private readonly string _lockRecursionText;
     private const string LockRecursionText = 
         "A read lock recursion exception has been thrown while writing and is a critical error for the service to continue running, shutting down";
 
@@ -413,7 +412,7 @@ public abstract class ThreadSafe
         catch (LockRecursionException e)
         {
             Logger?.LogCritical(LockRecursionText);
-            Logger?.LogCritical(e, "Exception and stacktrace");
+            Logger?.LogCritical("Exception and stacktrace: {Exception}, {StackTrace}", e.Message, e.StackTrace);
             throw;
         }
         catch (Exception e)
@@ -441,7 +440,7 @@ public abstract class ThreadSafe
         catch (LockRecursionException e)
         {
             Logger?.LogCritical(LockRecursionText);
-            Logger?.LogCritical(e, "Exception and stacktrace");
+            Logger?.LogCritical("Exception and stacktrace: {Exception}, {StackTrace}", e.Message, e.StackTrace);
             throw;
         }
         catch (Exception e)
