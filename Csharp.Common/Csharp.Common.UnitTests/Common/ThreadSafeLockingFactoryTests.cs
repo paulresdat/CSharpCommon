@@ -19,8 +19,8 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         ServiceCollection.AddSingleton<ThreadSafeOnLists>();
     }
 
-    [Fact(DisplayName = "001 Thread Safe Lock works well on a list",
-        Skip = "Skipping intermittent test that fails on build server")]
+    [Fact(DisplayName = "001 Thread Safe Lock works well on a list"
+        , Skip = "Skipping since it is somewhat unpredictable on the build server with aggregate exceptions towards the end")]
     public void T001()
     {
         var sp = GetNewServiceProvider;
@@ -58,7 +58,8 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
 
         Task.WaitAll(task1, task2);
         
-        // however the following is expected to run an aggregation error
+        // however the following is expected to run an aggregation error, maybe!??
+        // on the build server this actually fails!  I think we can skip this test.
         Assert.Throws<AggregateException>(() =>
         {
             var task3 = Task.Run(() =>
@@ -91,111 +92,6 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
 
             Task.WaitAll(task3, task4);
         });
-    }
-
-    private class ThreadLockerLogger : ThreadSafe<ThreadLockerLogger>
-    {
-        public ThreadLockerLogger(ILogger<ThreadLockerLogger> logger) : base(logger)
-        {
-        }
-
-        public new void EnterReadLock(Action action)
-        {
-            base.EnterReadLock(action);
-        }
-    }
-
-    private class ThreadLocker : ThreadSafe
-    {
-        public new void EnterReadLock(Action action)
-        {
-            base.EnterReadLock(action);
-        }
-
-        public new T EnterReadLock<T>(Func<T> action)
-        {
-            return base.EnterReadLock(action);
-        }
-
-        public new void TryEnterReadLock(Action action, TimeSpan timeSpan)
-        {
-            base.TryEnterReadLock(action, timeSpan);
-        }
-
-        public new T TryEnterReadLock<T>(Func<T> action, TimeSpan timeSpan)
-        {
-            return base.TryEnterReadLock(action, timeSpan);
-        }
-
-        public new void TryEnterReadLock(Action action, int timeout)
-        {
-            base.TryEnterReadLock(action, timeout);
-        }
-
-        public new T TryEnterReadLock<T>(Func<T> action, int timeout)
-        {
-            return base.TryEnterReadLock(action, timeout);
-        }
-
-        public new void EnterUpgradeableReadLock(Action action)
-        {
-            base.EnterUpgradeableReadLock(action);
-        }
-
-        public new T EnterUpgradeableReadLock<T>(Func<T> func)
-        {
-            return base.EnterUpgradeableReadLock(func);
-        }
-
-        public new void TryEnterUpgradeableReadLock(Action action, TimeSpan timeSpan)
-        {
-            base.TryEnterUpgradeableReadLock(action, timeSpan);
-        }
-
-        public new T TryEnterUpgradeableReadLock<T>(Func<T> func, TimeSpan timeSpan)
-        {
-            return base.TryEnterUpgradeableReadLock(func, timeSpan);
-        }
-
-        public new void TryEnterUpgradeableReadLock(Action action, int timeout)
-        {
-            base.TryEnterUpgradeableReadLock(action, timeout);
-        }
-
-        public new T TryEnterUpgradeableReadLock<T>(Func<T> func, int timeout)
-        {
-            return base.TryEnterUpgradeableReadLock(func, timeout);
-        }
-
-        public new void EnterReadWriteLock(Action action)
-        {
-            base.EnterReadWriteLock(action);
-        }
-        
-        public new T EnterReadWriteLock<T>(Func<T> func)
-        {
-            return base.EnterReadWriteLock(func);
-        }
-
-        public new void TryEnterReadWriteLock(Action action, TimeSpan timeSpan)
-        {
-            base.TryEnterReadWriteLock(action, timeSpan);
-        }
-        
-        public new T TryEnterReadWriteLock<T>(Func<T> func, TimeSpan timeSpan)
-        {
-            return base.TryEnterReadWriteLock(func, timeSpan);
-        }
-
-        public new void TryEnterReadWriteLock(Action action, int timeout)
-        {
-            base.TryEnterReadWriteLock(action, timeout);
-        }
-        
-        public new T TryEnterReadWriteLock<T>(Func<T> func, int timeout)
-        {
-            return base.TryEnterReadWriteLock(func, timeout);
-        }
     }
 
     [Fact(DisplayName = "002 Thread safe locking allow for upgradable read")]
@@ -279,11 +175,6 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         threadLock.EnterUpgradeableReadLock(() => 1).Should().Be(1);
         threadLock.TryEnterUpgradeableReadLock(() => 1, TimeSpan.FromSeconds(1)).Should().Be(1);
         threadLock.TryEnterUpgradeableReadLock(() => 1, 100).Should().Be(1);
-    }
-
-    private class CustomException : Exception
-    {
-        
     }
 
     [Fact(DisplayName = "005 Thread safe locking factory will return the data associated to the return value of the give function")]
@@ -488,5 +379,114 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         }
 
         return matches;
+    }
+
+    private class ThreadLockerLogger : ThreadSafe<ThreadLockerLogger>
+    {
+        public ThreadLockerLogger(ILogger<ThreadLockerLogger> logger) : base(logger)
+        {
+        }
+
+        public new void EnterReadLock(Action action)
+        {
+            base.EnterReadLock(action);
+        }
+    }
+
+    private class ThreadLocker : ThreadSafe
+    {
+        public new void EnterReadLock(Action action)
+        {
+            base.EnterReadLock(action);
+        }
+
+        public new T EnterReadLock<T>(Func<T> action)
+        {
+            return base.EnterReadLock(action);
+        }
+
+        public new void TryEnterReadLock(Action action, TimeSpan timeSpan)
+        {
+            base.TryEnterReadLock(action, timeSpan);
+        }
+
+        public new T TryEnterReadLock<T>(Func<T> action, TimeSpan timeSpan)
+        {
+            return base.TryEnterReadLock(action, timeSpan);
+        }
+
+        public new void TryEnterReadLock(Action action, int timeout)
+        {
+            base.TryEnterReadLock(action, timeout);
+        }
+
+        public new T TryEnterReadLock<T>(Func<T> action, int timeout)
+        {
+            return base.TryEnterReadLock(action, timeout);
+        }
+
+        public new void EnterUpgradeableReadLock(Action action)
+        {
+            base.EnterUpgradeableReadLock(action);
+        }
+
+        public new T EnterUpgradeableReadLock<T>(Func<T> func)
+        {
+            return base.EnterUpgradeableReadLock(func);
+        }
+
+        public new void TryEnterUpgradeableReadLock(Action action, TimeSpan timeSpan)
+        {
+            base.TryEnterUpgradeableReadLock(action, timeSpan);
+        }
+
+        public new T TryEnterUpgradeableReadLock<T>(Func<T> func, TimeSpan timeSpan)
+        {
+            return base.TryEnterUpgradeableReadLock(func, timeSpan);
+        }
+
+        public new void TryEnterUpgradeableReadLock(Action action, int timeout)
+        {
+            base.TryEnterUpgradeableReadLock(action, timeout);
+        }
+
+        public new T TryEnterUpgradeableReadLock<T>(Func<T> func, int timeout)
+        {
+            return base.TryEnterUpgradeableReadLock(func, timeout);
+        }
+
+        public new void EnterReadWriteLock(Action action)
+        {
+            base.EnterReadWriteLock(action);
+        }
+        
+        public new T EnterReadWriteLock<T>(Func<T> func)
+        {
+            return base.EnterReadWriteLock(func);
+        }
+
+        public new void TryEnterReadWriteLock(Action action, TimeSpan timeSpan)
+        {
+            base.TryEnterReadWriteLock(action, timeSpan);
+        }
+        
+        public new T TryEnterReadWriteLock<T>(Func<T> func, TimeSpan timeSpan)
+        {
+            return base.TryEnterReadWriteLock(func, timeSpan);
+        }
+
+        public new void TryEnterReadWriteLock(Action action, int timeout)
+        {
+            base.TryEnterReadWriteLock(action, timeout);
+        }
+        
+        public new T TryEnterReadWriteLock<T>(Func<T> func, int timeout)
+        {
+            return base.TryEnterReadWriteLock(func, timeout);
+        }
+    }
+
+    private class CustomException : Exception
+    {
     }
 }
