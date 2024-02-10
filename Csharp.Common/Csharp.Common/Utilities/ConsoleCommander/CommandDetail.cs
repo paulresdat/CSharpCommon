@@ -1,13 +1,13 @@
 namespace Csharp.Common.Utilities.ConsoleCommander;
 
-public enum AsyncType
+internal enum AsyncType
 {
     None,
     Simple,
     WithParameter
 }
 
-public abstract class NnCommand
+internal abstract class CommandDetail
 {
     public string? Command { get; set; }
     public string? RegexStr { get; set; }
@@ -17,7 +17,7 @@ public abstract class NnCommand
     public object GetAction => ActionVal ?? throw new InvalidOperationException();
 }
 
-public class NnCommand<T> : NnCommand where T : Delegate
+internal class CommandDetail<T> : CommandDetail where T : Delegate
 {
     public T? Action
     {

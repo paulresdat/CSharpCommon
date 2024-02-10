@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Csharp.Common.Utilities.ServiceCollection;
+namespace Csharp.Common.Services;
 
 /// <summary>
 /// <para>

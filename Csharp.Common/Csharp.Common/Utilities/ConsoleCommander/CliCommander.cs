@@ -13,7 +13,7 @@ namespace Csharp.Common.Utilities.ConsoleCommander;
 /// adminConsole.RunAdmin();
 /// </code>
 /// </example>
-public interface IAdminConsole
+public interface ICli
 {
     /// <summary>
     /// Run admin console!  The main entry point, the place where it starts!  When you run this command, admin console
@@ -21,13 +21,14 @@ public interface IAdminConsole
     /// and will run code specified by you for each command registered.  Quitting throws a quit exception which is caught
     /// and then prints the message out before exiting admin console functionality.
     /// </summary>
-    void RunAdmin();
+    void RunCli();
 }
 
 public interface ICommandListFluency
 {
     ICommandListFluency AddCommand(string command, string description, Action action, string? regex = null);
     ICommandListFluency AddCommand(string command, string description, Action<string> action, string? regex = null);
+    ICommandListFluency AddCommand(string command, string description, Func<Task> action, string? regex = null);
     ICommandListFluency AddCommand(string command, string description, Func<string, Task> action, string? regex = null);
 }
 
@@ -94,17 +95,22 @@ public interface ICommandListFluency
 /// }
 /// </code>
 /// </example>
-public abstract class CliCommander : ICommandListFluency, IAdminConsole
+public abstract class CliCommander : ICommandListFluency, ICli
 {
-    // ReSharper disable once MemberCanBePrivate.Global
-    protected readonly IConsoleCommandList CommandList;
-    // ReSharper disable once MemberCanBePrivate.Global
-    protected readonly ICliComponent CliComponent;
+    private readonly IConsoleCommandList _commandList;
+    private readonly ICommandLineProcessor _commandLineProcessor;
+    private readonly IConsoleOutput _consoleOutput;
+    protected IConsoleCommandList Commands => _commandList;
+    protected ICommandLineProcessor CommandLineProcessor => _commandLineProcessor;
 
-    protected CliCommander(ICliComponent cliComponent, IConsoleCommandList commandList)
+    protected CliCommander(
+        ICommandLineProcessor commandLineProcessor,
+        IConsoleCommandList commandList,
+        IConsoleOutput consoleOutput)
     {
-        CliComponent = cliComponent;
-        CommandList = commandList;
+        _commandLineProcessor = commandLineProcessor;
+        _commandList = commandList;
+        _consoleOutput = consoleOutput;
     }
 
     /// <summary>
@@ -116,11 +122,10 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
     /// <summary>
     /// This is the splash screen that is called every time admin console starts.
     /// </summary>
-    /// <param name="cnsl"></param>
-    protected abstract void AdminSplashScreen(Cnsl cnsl);
+    /// <param name="consoleOutput"></param>
+    protected abstract void AdminSplashScreen(IConsoleOutput consoleOutput);
 
     /// <summary>
-    /// TODO - deprecate public
     /// </summary>
     /// <param name="command"></param>
     /// <param name="description"></param>
@@ -129,12 +134,11 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
     /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Action action, string? regex = null)
     {
-        CommandList.AddCommand(command, description, action, regex);
+        Commands.AddCommand(command, description, action, regex);
         return this;
     }
 
     /// <summary>
-    /// TODO - deprecate public
     /// </summary>
     /// <param name="command"></param>
     /// <param name="description"></param>
@@ -143,12 +147,11 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
     /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Action<string> action, string? regex = null)
     {
-        CommandList.AddCommand(command, description, action, regex);
+        Commands.AddCommand(command, description, action, regex);
         return this;
     }
 
     /// <summary>
-    /// TODO - deprecate public
     /// </summary>
     /// <param name="command"></param>
     /// <param name="description"></param>
@@ -157,12 +160,11 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
     /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Func<Task> action, string? regex = null)
     {
-        CommandList.AddCommand(command, description, action, regex);
+        Commands.AddCommand(command, description, action, regex);
         return this;
     }
 
     /// <summary>
-    /// TODO - deprecate public
     /// </summary>
     /// <param name="command"></param>
     /// <param name="description"></param>
@@ -171,22 +173,15 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
     /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Func<string, Task> action, string? regex = null)
     {
-        CommandList.AddCommand(command, description, action, regex);
+        Commands.AddCommand(command, description, action, regex);
         return this;
     }
 
-    private Cnsl? _cnsl;
-    protected Cnsl Cnsl
-    {
-        set => _cnsl = value;
-        get => _cnsl ??= Cnsl.Instance;
-    }
-
-    public void RunAdmin()
+    public void RunCli()
     {
         InitializeAdminCommands(this);
         AddCommand("?", "Show Menu", (s) => PrintMenu());
-        AdminSplashScreen(Cnsl);
+        AdminSplashScreen(_consoleOutput);
         PrintMenu();
         ReadFromInput();
     }
@@ -221,7 +216,7 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
         bool loop;
         do
         {
-            Cnsl.Write(line);
+            _consoleOutput.Write(line);
             var newLine = Console.ReadLine()?.Trim() ?? "";
             loop = !action(newLine);
         } while (loop);
@@ -231,7 +226,7 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
     {
         var table = new Table();
         table.AddColumns("[yellow]Command[/]", "[yellow]Description[/]");
-        foreach (var command in CommandList.Commands)
+        foreach (var command in Commands.Commands)
         {
             table.AddRow("[green]" + command[0] + "[/]", command[1]);
         }
@@ -247,10 +242,10 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
         {
             try
             {
-                var data = CliComponent.ReadLine();
-                await CommandList.RunCommand(data.Trim());
+                var data = CommandLineProcessor.ReadLine();
+                await Commands.RunCommand(data.Trim());
             }
-            catch (NnCommandListException e)
+            catch (CommandListException e)
             {
                 Console.WriteLine(e.Message);
             }
@@ -262,7 +257,7 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
                         ? "Quitting, shutting stuff down.  If this doesn't automatically stop, there is an issue"
                         : e.Message);
                 quit = true;
-                onQuit?.Invoke(CommandList);
+                onQuit?.Invoke(Commands);
             }
             catch (Exception e)
             {

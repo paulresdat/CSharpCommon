@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Csharp.Common.UnitTesting;
 using Csharp.Common.Utilities;
 using FluentAssertions;
@@ -6,6 +7,7 @@ using Xunit;
 
 namespace Csharp.Common.UnitTests.Common;
 
+[ExcludeFromCodeCoverage]
 public class DebugOutputTests : BaseUnitTest
 {
     public DebugOutputTests()

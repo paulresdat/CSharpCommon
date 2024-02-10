@@ -1,11 +1,12 @@
 namespace Csharp.Common.Utilities.ConsoleCommander;
 
-public interface ICliComponent
+public interface ICommandLineProcessor
 {
     string ReadLine();
     void SetConsolePrompt(string prompt = "$> ");
 }
-public class CliComponent : ICliComponent
+
+public class CommandLineProcessor : ICommandLineProcessor
 {
     private readonly List<string> _history = new();
     private string Prompt { get; set; } = "$> ";

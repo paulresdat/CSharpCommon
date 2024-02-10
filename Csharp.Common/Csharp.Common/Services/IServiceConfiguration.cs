@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Csharp.Common.Utilities.ServiceCollection;
+namespace Csharp.Common.Services;
 
 /// <summary>
 /// The IServiceConfiguration has some public facing methods that require documentation:
