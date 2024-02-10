@@ -1,14 +1,22 @@
 namespace Csharp.Common.Utilities.ConsoleCommander;
 
+public enum AsyncType
+{
+    None,
+    Simple,
+    WithParameter
+}
+
 public abstract class NnCommand
 {
     public string? Command { get; set; }
     public string? RegexStr { get; set; }
     public string? Description { get; set; }
-    public bool IsAsync { get; set; }
+    public AsyncType AsyncType { get; set; } = AsyncType.None;
     protected object? ActionVal { get; set; }
     public object GetAction => ActionVal ?? throw new InvalidOperationException();
 }
+
 public class NnCommand<T> : NnCommand where T : Delegate
 {
     public T? Action
@@ -17,11 +25,21 @@ public class NnCommand<T> : NnCommand where T : Delegate
         get => (T) GetAction;
     }
 
+    public Func<Task> SimpleAsync
+    {
+        get => (Func<Task>) GetAction;
+        set
+        {
+            AsyncType = AsyncType.Simple;
+            ActionVal = value;
+        }
+    }
+
     public Func<string, Task>? ActionAsync
     {
         set
         {
-            IsAsync = true;
+            AsyncType = AsyncType.WithParameter;
             ActionVal = value;
         }
 

@@ -155,6 +155,20 @@ public abstract class CliCommander : ICommandListFluency, IAdminConsole
     /// <param name="action"></param>
     /// <param name="regex"></param>
     /// <returns></returns>
+    public ICommandListFluency AddCommand(string command, string description, Func<Task> action, string? regex = null)
+    {
+        CommandList.AddCommand(command, description, action, regex);
+        return this;
+    }
+
+    /// <summary>
+    /// TODO - deprecate public
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="description"></param>
+    /// <param name="action"></param>
+    /// <param name="regex"></param>
+    /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Func<string, Task> action, string? regex = null)
     {
         CommandList.AddCommand(command, description, action, regex);
