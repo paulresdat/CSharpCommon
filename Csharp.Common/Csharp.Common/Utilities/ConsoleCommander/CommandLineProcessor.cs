@@ -4,19 +4,48 @@ public interface ICommandLineProcessor
 {
     string ReadLine();
     void SetConsolePrompt(string prompt = "$> ");
+    CancellationTokenSource TokenSource { get; set; }
 }
 
 public class CommandLineProcessor : ICommandLineProcessor
 {
+    #region properties and dependencies
     private readonly IConsoleOutput _cnsl;
+
+    private CancellationTokenSource? _tokenSource;
+    public CancellationTokenSource TokenSource
+    {
+        get
+        {
+            // we dynamically create one when fetching the first time
+            _tokenSource ??= new CancellationTokenSource();
+            return _tokenSource;
+        }
+
+        set
+        {
+            if (_tokenSource is not null && !_tokenSource.IsCancellationRequested)
+            {
+                throw new InvalidOperationException("Cancellation token source was already set.");
+            }
+            _tokenSource = value;
+        }
+    }
+
+    private readonly List<string> _history = new();
+    private string Prompt { get; set; } = "$> ";
+    private readonly List<char> _currentCharacterList = new();
+    private int ArrowLeftCount { get; set; } = 0;
+    private int SpliceIdx { get; set; } = 0;
+    private readonly CurrentCursorPosition _currentCursorPosition = new();
+    // private int EndCursorIdx => Prompt.Length + _currentCharacterList.Count;
+    #endregion
 
     public CommandLineProcessor(IConsoleOutput output)
     {
         _cnsl = output;
     }
 
-    private readonly List<string> _history = new();
-    private string Prompt { get; set; } = "$> ";
 
     public void SetConsolePrompt(string prompt = "$> ")
     {
@@ -39,30 +68,26 @@ public class CommandLineProcessor : ICommandLineProcessor
         }
     }
 
-    private readonly List<char> _currentCharacterList = new();
-    private int ArrowLeftCount { get; set; } = 0;
-    private int SpliceIdx { get; set; } = 0;
-
     private void Clear()
     {
         _currentCharacterList.Clear();
     }
 
-    private void AddCharacterAtEnd(char what)
-    {
-        _currentCharacterList.Add(what);
-    }
+    // private void AddCharacterAtEnd(char what)
+    // {
+    //     _currentCharacterList.Add(what);
+    // }
 
     private void InsertCharacters(string what)
     {
         _currentCharacterList.AddRange(what);
     }
 
-    private void SpliceIn(int at, char what)
-    {
-        _currentCharacterList.RemoveAt(at);
-        _currentCharacterList.Insert(at, what);
-    }
+    // private void SpliceIn(int at, char what)
+    // {
+    //     _currentCharacterList.RemoveAt(at);
+    //     _currentCharacterList.Insert(at, what);
+    // }
 
     private void InsertAt(int at, char what)
     {
@@ -97,13 +122,6 @@ public class CommandLineProcessor : ICommandLineProcessor
     }
 
 
-    private class CurrentCursorPosition
-    {
-        public int FromLeft { get; set; }
-        public int FromTop { get; set; }
-    }
-
-    private readonly CurrentCursorPosition _currentCursorPosition = new();
     private void SaveCursorPosition()
     {
         _currentCursorPosition.FromLeft = _cnsl.CursorLeft;
@@ -115,15 +133,13 @@ public class CommandLineProcessor : ICommandLineProcessor
         _cnsl.SetCursorPosition(_currentCursorPosition.FromLeft, _currentCursorPosition.FromTop);
     }
 
-    private int EndCursorIdx => Prompt.Length + _currentCharacterList.Count;
-
     private string ReadLineInternal()
     {
         _currentCharacterList.Clear();
         ArrowLeftCount = 0;
         var idx = _history.Count;
         _cnsl.Write(Prompt);
-        while (true)
+        while (!TokenSource.IsCancellationRequested)
         {
             var chInt = _cnsl.ReadKey();
             SaveCursorPosition();
@@ -204,5 +220,14 @@ public class CommandLineProcessor : ICommandLineProcessor
                 ResetCursorToLastSaveAfterInput();
             }
         }
+        
+        // default in case the while statement triggers out
+        return string.Empty;
+    }
+    
+    private class CurrentCursorPosition
+    {
+        public int FromLeft { get; set; }
+        public int FromTop { get; set; }
     }
 }

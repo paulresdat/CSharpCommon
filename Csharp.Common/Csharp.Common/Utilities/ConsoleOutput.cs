@@ -15,11 +15,13 @@ public interface IConsoleOutput
     int CursorLeft { get; set; }
     int CursorTop { get; set; }
     ConsoleKeyInfo ReadKey();
+    string? ReadLine();
 }
 
 // ConsoleOutput is a wrapper around Console with some color syntax niceties.  I don't think
 // it needs to be covered by unit tests at this time.  Wrapping console.write to test
-// is over doing it in my opinion.
+// is over doing it in my opinion.  This acts as both some nice sugar around .NET Console
+// and color output as well as the capacity to mock for testing. 
 [ExcludeFromCodeCoverage]
 public class ConsoleOutput : IConsoleOutput
 {
@@ -36,6 +38,11 @@ public class ConsoleOutput : IConsoleOutput
         }
 
         return this;
+    }
+
+    public string? ReadLine()
+    {
+        return Console.ReadLine();
     }
 
     public IConsoleOutput Reset()

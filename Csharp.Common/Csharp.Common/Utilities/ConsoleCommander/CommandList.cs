@@ -90,7 +90,8 @@ public class CommandList : IConsoleCommandList
         var cmd = _commands.First(x => Regex.IsMatch(command, "^" + x.RegexStr + "$"));
         if (cmd.AsyncType == AsyncType.Simple)
         {
-            await ((Func<Task>)cmd.GetAction).Invoke();
+            var func = ((Func<Task>)cmd.GetAction);
+            await func.Invoke();
         }
         else if (cmd.AsyncType == AsyncType.WithParameter)
         {

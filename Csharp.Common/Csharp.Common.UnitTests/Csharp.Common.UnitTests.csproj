@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Csharp.Common.UnitTesting\Csharp.Common.UnitTesting.csproj" />
+      <ProjectReference Include="..\Csharp.Common.Unsafe\Csharp.Common.Unsafe.csproj" />
     </ItemGroup>
 
     <ItemGroup>
