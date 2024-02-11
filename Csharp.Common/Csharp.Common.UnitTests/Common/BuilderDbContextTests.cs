@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Csharp.Common.Builders;
 using Csharp.Common.UnitTesting;
 using FluentAssertions;
@@ -7,6 +8,7 @@ using Xunit.Abstractions;
 
 namespace Csharp.Common.UnitTests.Common;
 
+[ExcludeFromCodeCoverage]
 public class BuilderDbContextTests : BaseUnitTest
 {
     private readonly ITestOutputHelper _output;

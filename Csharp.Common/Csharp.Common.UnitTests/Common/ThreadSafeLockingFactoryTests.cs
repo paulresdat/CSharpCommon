@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Csharp.Common.UnitTesting;
 using Csharp.Common.Utilities.ThreadSafety;
 using FluentAssertions;
@@ -8,6 +9,7 @@ using Xunit.Abstractions;
 
 namespace Csharp.Common.UnitTests.Common;
 
+[ExcludeFromCodeCoverage]
 public class ThreadSafeLockingFactoryTests : BaseUnitTest
 {
     private readonly ITestOutputHelper _output;

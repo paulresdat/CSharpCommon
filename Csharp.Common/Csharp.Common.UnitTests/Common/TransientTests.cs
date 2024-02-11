@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using Csharp.Common.Services;
 using Csharp.Common.UnitTesting;
 using Csharp.Common.Utilities;
 using FluentAssertions;
@@ -7,27 +9,7 @@ using Xunit.Abstractions;
 
 namespace Csharp.Common.UnitTests.Common;
 
-
-public class TransientObject : ITransientService, IDisposable
-{
-    public string Data { get; set; } = "";
-
-    public void Dispose()
-    {
-        Data = "Disposed";
-    }
-}
-
-public class UnregisteredTransientObject : ITransientService, IDisposable
-{
-    public string Data { get; set; } = "";
-
-    public void Dispose()
-    {
-        Data = "Disposed";
-    }
-}
-
+[ExcludeFromCodeCoverage]
 public class TransientTests : BaseUnitTest
 {
     public TransientTests(ITestOutputHelper output)
@@ -56,5 +38,25 @@ public class TransientTests : BaseUnitTest
         var tsp = sp.GetRequiredService<ITransientServiceProvider>();
         var obj = tsp.GetTransient<UnregisteredTransientObject>();
         obj.Should().BeNull();
+    }
+    
+    private class TransientObject : ITransientService, IDisposable
+    {
+        public string Data { get; set; } = "";
+
+        public void Dispose()
+        {
+            Data = "Disposed";
+        }
+    }
+
+    private class UnregisteredTransientObject : ITransientService, IDisposable
+    {
+        public string Data { get; set; } = "";
+
+        public void Dispose()
+        {
+            Data = "Disposed";
+        }
     }
 }

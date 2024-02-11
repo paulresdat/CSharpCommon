@@ -1,5 +1,5 @@
 using AutoMapper;
-using Csharp.Common.Utilities;
+using Csharp.Common.Services;
 
 namespace Csharp.Common.EntityFramework.Domain.Sql.Procedures;
 

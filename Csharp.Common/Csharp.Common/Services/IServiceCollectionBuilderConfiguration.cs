@@ -1,4 +1,4 @@
-namespace Csharp.Common.Utilities.ServiceCollection;
+namespace Csharp.Common.Services;
 
 public interface IServiceCollectionBuilderConfiguration
 {

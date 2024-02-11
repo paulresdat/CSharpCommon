@@ -1,6 +1,6 @@
 using Csharp.Common.AppSettings;
 using Csharp.Common.EntityFramework.Domain;
-using Csharp.Common.Utilities.ServiceCollection;
+using Csharp.Common.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

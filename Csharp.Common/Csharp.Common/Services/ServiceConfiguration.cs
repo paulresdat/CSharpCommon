@@ -1,8 +1,7 @@
-using System;
 using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Csharp.Common.Utilities.ServiceCollection;
+namespace Csharp.Common.Services;
 
 /// <summary>
 /// <para>
@@ -58,8 +57,7 @@ namespace Csharp.Common.Utilities.ServiceCollection;
 /// }
 /// </code>
 /// </example>
-/// <typeparam name="TParent"></typeparam>
-public abstract class ServiceConfiguration<TParent> where TParent : IServiceConfiguration
+public abstract class ServiceConfiguration
 {
     protected IServiceCollectionBuilderConfiguration? ConfigurationBuilder { get; set; }
 
@@ -78,11 +76,55 @@ public abstract class ServiceConfiguration<TParent> where TParent : IServiceConf
 
     public void ConfigureServices(IServiceCollection serviceCollection)
     {
+        // enforcing here, makes it easier
+        serviceCollection.AddLogging();
+        serviceCollection.AddOptions();
         AddConfigurations(serviceCollection);
         ConfigureServiceCollection(serviceCollection);
-        InjectNlog(serviceCollection);
+        PostConfiguration(serviceCollection);
+        RunBootstrappedAutomapperConfigurations(serviceCollection);
+    }
+    
+    protected abstract void AddConfigurations(IServiceCollection serviceCollection);
+    protected abstract void ConfigureServiceCollection(IServiceCollection serviceCollection);
+    protected abstract void PostConfiguration(IServiceCollection serviceCollection);
+
+    /// <summary>
+    /// Instance level
+    /// </summary>
+    /// <param name="serviceCollection"></param>
+    /// <param name="builderConfiguration"></param>
+    /// <returns></returns>
+    public void Register(IServiceCollection serviceCollection,
+        IServiceCollectionBuilderConfiguration builderConfiguration)
+    {
+        SetAppSettingsBuilder(builderConfiguration);
+        ConfigureServices(serviceCollection);
     }
 
+    private List<Action<IMapperConfigurationExpression>> MappingConfigurations { get; set; } = new();
+
+    protected void AddAutoMapper(Action<IMapperConfigurationExpression> profileAction)
+    {
+        MappingConfigurations.Add(profileAction);
+    }
+
+    private void RunBootstrappedAutomapperConfigurations(IServiceCollection serviceCollection)
+    {
+        var mapper = new MapperConfiguration(cfg =>
+        {
+            foreach (var config in MappingConfigurations)
+            {
+                config(cfg);
+            }
+        });
+        serviceCollection.AddSingleton(mapper);
+        serviceCollection.AddSingleton(mapper.CreateMapper());
+    }
+}
+
+public abstract class ServiceConfiguration<TParent> : ServiceConfiguration where TParent : IServiceConfiguration
+{
     private static TParent? PrivateInstance { get; set; }
     public static TParent Instance
     {
@@ -97,19 +139,6 @@ public abstract class ServiceConfiguration<TParent> where TParent : IServiceConf
         }
     }
 
-    /// <summary>
-    /// Instance level 
-    /// </summary>
-    /// <param name="serviceCollection"></param>
-    /// <param name="builderConfiguration"></param>
-    /// <returns></returns>
-    public void Register(IServiceCollection serviceCollection,
-        IServiceCollectionBuilderConfiguration builderConfiguration)
-    {
-        SetAppSettingsBuilder(builderConfiguration);
-        ConfigureServices(serviceCollection);
-    }
-
     public static IServiceConfiguration RegisterBaseServices(
         IServiceCollection serviceCollection,
         IServiceCollectionBuilderConfiguration builderConfiguration)
@@ -119,16 +148,5 @@ public abstract class ServiceConfiguration<TParent> where TParent : IServiceConf
         instance.SetAppSettingsBuilder(builderConfiguration);
         instance.ConfigureServices(serviceCollection);
         return PrivateInstance;
-    }
-
-    protected abstract void AddConfigurations(IServiceCollection serviceCollection);
-    protected abstract void ConfigureServiceCollection(IServiceCollection serviceCollection);
-    protected abstract void InjectNlog(IServiceCollection serviceCollection);
-
-    protected void AddAutoMapper(IServiceCollection serviceCollection, Action<IMapperConfigurationExpression> profileAction)
-    {
-        var mapper = new MapperConfiguration(profileAction);
-        serviceCollection.AddSingleton(mapper);
-        serviceCollection.AddSingleton(mapper.CreateMapper());
     }
 }

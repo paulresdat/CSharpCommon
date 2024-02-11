@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Csharp.Common.Extensions;
 using Csharp.Common.UnitTesting;
 using FluentAssertions;
@@ -6,6 +7,7 @@ using Xunit;
 
 namespace Csharp.Common.UnitTests.Common;
 
+[ExcludeFromCodeCoverage]
 public class ServiceExtensionTests : BaseUnitTest
 {
     public ServiceExtensionTests()
