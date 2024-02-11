@@ -26,9 +26,44 @@ public interface ICli
 
 public interface ICommandListFluency
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="description"></param>
+    /// <param name="action"></param>
+    /// <param name="regex"></param>
+    /// <returns></returns>
     ICommandListFluency AddCommand(string command, string description, Action action, string? regex = null);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="description"></param>
+    /// <param name="action"></param>
+    /// <param name="regex"></param>
+    /// <returns></returns>
     ICommandListFluency AddCommand(string command, string description, Action<string> action, string? regex = null);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="description"></param>
+    /// <param name="action"></param>
+    /// <param name="regex"></param>
+    /// <returns></returns>
     ICommandListFluency AddCommand(string command, string description, Func<Task> action, string? regex = null);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="description"></param>
+    /// <param name="action"></param>
+    /// <param name="regex"></param>
+    /// <returns></returns>
     ICommandListFluency AddCommand(string command, string description, Func<string, Task> action, string? regex = null);
 }
 
@@ -97,11 +132,10 @@ public interface ICommandListFluency
 /// </example>
 public abstract class CliCommander : ICommandListFluency, ICli
 {
-    private readonly IConsoleCommandList _commandList;
     private readonly ICommandLineProcessor _commandLineProcessor;
     private readonly IConsoleOutput _consoleOutput;
-    protected IConsoleCommandList Commands => _commandList;
-    protected ICommandLineProcessor CommandLineProcessor => _commandLineProcessor;
+    private readonly IConsoleCommandList _commands;
+    protected IConsoleOutput Out => _consoleOutput;
 
     protected CliCommander(
         ICommandLineProcessor commandLineProcessor,
@@ -109,7 +143,7 @@ public abstract class CliCommander : ICommandListFluency, ICli
         IConsoleOutput consoleOutput)
     {
         _commandLineProcessor = commandLineProcessor;
-        _commandList = commandList;
+        _commands = commandList;
         _consoleOutput = consoleOutput;
     }
 
@@ -134,7 +168,7 @@ public abstract class CliCommander : ICommandListFluency, ICli
     /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Action action, string? regex = null)
     {
-        Commands.AddCommand(command, description, action, regex);
+        _commands.AddCommand(command, description, action, regex);
         return this;
     }
 
@@ -147,7 +181,7 @@ public abstract class CliCommander : ICommandListFluency, ICli
     /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Action<string> action, string? regex = null)
     {
-        Commands.AddCommand(command, description, action, regex);
+        _commands.AddCommand(command, description, action, regex);
         return this;
     }
 
@@ -160,7 +194,7 @@ public abstract class CliCommander : ICommandListFluency, ICli
     /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Func<Task> action, string? regex = null)
     {
-        Commands.AddCommand(command, description, action, regex);
+        _commands.AddCommand(command, description, action, regex);
         return this;
     }
 
@@ -173,14 +207,14 @@ public abstract class CliCommander : ICommandListFluency, ICli
     /// <returns></returns>
     public ICommandListFluency AddCommand(string command, string description, Func<string, Task> action, string? regex = null)
     {
-        Commands.AddCommand(command, description, action, regex);
+        _commands.AddCommand(command, description, action, regex);
         return this;
     }
 
     public void RunCli()
     {
         InitializeAdminCommands(this);
-        AddCommand("?", "Show Menu", (s) => PrintMenu());
+        AddCommand("?", "Show Menu", PrintMenu);
         AdminSplashScreen(_consoleOutput);
         PrintMenu();
         ReadFromInput();
@@ -217,7 +251,7 @@ public abstract class CliCommander : ICommandListFluency, ICli
         do
         {
             _consoleOutput.Write(line);
-            var newLine = Console.ReadLine()?.Trim() ?? "";
+            var newLine = _consoleOutput.ReadLine()?.Trim() ?? "";
             loop = !action(newLine);
         } while (loop);
     }
@@ -226,7 +260,7 @@ public abstract class CliCommander : ICommandListFluency, ICli
     {
         var table = new Table();
         table.AddColumns("[yellow]Command[/]", "[yellow]Description[/]");
-        foreach (var command in Commands.Commands)
+        foreach (var command in _commands.Commands)
         {
             table.AddRow("[green]" + command[0] + "[/]", command[1]);
         }
@@ -242,27 +276,27 @@ public abstract class CliCommander : ICommandListFluency, ICli
         {
             try
             {
-                var data = CommandLineProcessor.ReadLine();
-                await Commands.RunCommand(data.Trim());
+                var data = _commandLineProcessor.ReadLine();
+                await _commands.RunCommandAsync(data.Trim());
             }
             catch (CommandListException e)
             {
-                Console.WriteLine(e.Message);
+                _consoleOutput.WriteLine(e.Message);
             }
             catch (QuitOutOfConsoleCommanderException e)
             {
                 // do stuff!
-                Console.WriteLine(
+                _consoleOutput.WriteLine(
                     !e.CustomMessageSet
                         ? "Quitting, shutting stuff down.  If this doesn't automatically stop, there is an issue"
                         : e.Message);
                 quit = true;
-                onQuit?.Invoke(Commands);
+                onQuit?.Invoke(_commands);
             }
             catch (Exception e)
             {
-                Console.WriteLine("A general exception was thrown when running the previous command: " + e.Message);
-                Console.WriteLine(e.StackTrace);
+                _consoleOutput.WriteLine("A general exception was thrown when running the previous command: " + e.Message);
+                _consoleOutput.WriteLine(e.StackTrace ?? string.Empty);
             }
         }
     }
