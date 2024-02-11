@@ -176,9 +176,11 @@ public class ConsoleCommanderTests : BaseUnitTest
                 }
                 return "test" + c;
             }));
+        Thread.Sleep(1000);
         var sp = GetNewServiceProvider;
         var cli = sp.GetRequiredService<CliCommanderTest>();
         cli.RunCli();
+        Thread.Sleep(1000);
 
         cli.Test1.Should().Be(1);
         cli.Test2.Should().Be(2);
