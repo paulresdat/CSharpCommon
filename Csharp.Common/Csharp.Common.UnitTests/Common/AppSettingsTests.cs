@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using AutoMapper;
 using Csharp.Common.AppSettings;
@@ -9,33 +10,8 @@ using Xunit;
 
 namespace Csharp.Common.UnitTests.Common;
 
-public class TestAppSettings1
-{
-    public string Attribute1 { get; set; } = default!;
-    public string Attribute2 { get; set; } = default!;
-}
 
-public class TestAppSettings1Dto : TestAppSettings1
-{
-}
-
-public interface ITestAppSettingsWatcher : IAppSettingsWatcher<TestAppSettings1> {}
-public interface ITestAppSettings1WatcherSafe : IAppSettingsWatcherSafe<TestAppSettings1, TestAppSettings1Dto> {}
-
-public class TestAppSettingsWatcher : AppSettingsWatcher<TestAppSettings1>, ITestAppSettingsWatcher
-{
-    public TestAppSettingsWatcher(IOptionsMonitor<TestAppSettings1> settings) : base(settings)
-    {
-    }
-}
-
-public class TestAppSettings1WatcherSafe : AppSettingsWatcherSafe<TestAppSettings1, TestAppSettings1Dto>, ITestAppSettings1WatcherSafe
-{
-    public TestAppSettings1WatcherSafe(IMapper mapper, IOptionsMonitor<TestAppSettings1> settings) : base(mapper, settings)
-    {
-    }
-}
-
+[ExcludeFromCodeCoverage]
 public class AppSettingsTests : BaseUnitTest
 {
     public AppSettingsTests()
@@ -207,5 +183,32 @@ public class AppSettingsTests : BaseUnitTest
         {
             watcher.OnChange += settings1 => { };
         });
+    }
+    
+    private class TestAppSettings1
+    {
+        public string Attribute1 { get; set; } = default!;
+        public string Attribute2 { get; set; } = default!;
+    }
+
+    private class TestAppSettings1Dto : TestAppSettings1
+    {
+    }
+
+    private interface ITestAppSettingsWatcher : IAppSettingsWatcher<TestAppSettings1> {}
+    private interface ITestAppSettings1WatcherSafe : IAppSettingsWatcherSafe<TestAppSettings1, TestAppSettings1Dto> {}
+
+    private class TestAppSettingsWatcher : AppSettingsWatcher<TestAppSettings1>, ITestAppSettingsWatcher
+    {
+        public TestAppSettingsWatcher(IOptionsMonitor<TestAppSettings1> settings) : base(settings)
+        {
+        }
+    }
+
+    private class TestAppSettings1WatcherSafe : AppSettingsWatcherSafe<TestAppSettings1, TestAppSettings1Dto>, ITestAppSettings1WatcherSafe
+    {
+        public TestAppSettings1WatcherSafe(IMapper mapper, IOptionsMonitor<TestAppSettings1> settings) : base(mapper, settings)
+        {
+        }
     }
 }

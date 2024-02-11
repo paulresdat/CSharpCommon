@@ -1,7 +1,6 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Csharp.Common.Utilities;
+namespace Csharp.Common.Services;
 
 // use this for your transients
 public interface ITransientService { }

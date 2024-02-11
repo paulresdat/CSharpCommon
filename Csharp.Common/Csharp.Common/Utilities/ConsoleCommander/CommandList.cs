@@ -6,18 +6,19 @@ public interface IConsoleCommandList
 {
     IConsoleCommandList AddCommand(string command, string description, Action action, string? regex = null);
     IConsoleCommandList AddCommand(string command, string description, Action<string> action, string? regex = null);
+    IConsoleCommandList AddCommand(string command, string description, Func<Task> action, string? regex = null);
     IConsoleCommandList AddCommand(string command, string description, Func<string, Task> action, string? regex = null);
     Task RunCommand(string command);
     List<string[]> Commands { get; }
 }
 
-public class NnCommandList : IConsoleCommandList
+public class CommandList : IConsoleCommandList
 {
-    private readonly List<NnCommand> _commands = new();
+    private readonly List<CommandDetail> _commands = new();
 
     public IConsoleCommandList AddCommand(string command, string description, Action action, string? regex = null)
     {
-        var nnCommand = new NnCommand<Action<string>>
+        var nnCommand = new CommandDetail<Action<string>>
         {
             Command = command,
             RegexStr = (!string.IsNullOrWhiteSpace(regex) ? regex : command),
@@ -32,7 +33,7 @@ public class NnCommandList : IConsoleCommandList
     
     public IConsoleCommandList AddCommand(string command, string description, Action<string> action, string? regex = null)
     {
-        var nnCommand = new NnCommand<Action<string>>
+        var nnCommand = new CommandDetail<Action<string>>
         {
             Command = command,
             RegexStr = (!string.IsNullOrWhiteSpace(regex) ? regex : command),
@@ -45,9 +46,24 @@ public class NnCommandList : IConsoleCommandList
         return this;
     }
 
+    public IConsoleCommandList AddCommand(string command, string description, Func<Task> action, string? regex = null)
+    {
+        var nnCommand = new CommandDetail<Action<string>>
+        {
+            Command = command,
+            RegexStr = (!string.IsNullOrWhiteSpace(regex) ? regex : command),
+            Description = description,
+            SimpleAsync = action
+        };
+
+        _commands.Add(nnCommand);
+
+        return this;
+    }
+
     public IConsoleCommandList AddCommand(string command, string description, Func<string, Task> action, string? regex = null)
     {
-        var nnCommand = new NnCommand<Func<string, Task>>
+        var nnCommand = new CommandDetail<Func<string, Task>>
         {
             Command = command,
             RegexStr = (!string.IsNullOrWhiteSpace(regex) ? regex : command),
@@ -65,13 +81,18 @@ public class NnCommandList : IConsoleCommandList
         {
             return;
         }
+
         if (_commands.All(x => !Regex.IsMatch(command, "^" + x.RegexStr + "$")))
         {
-            throw new NnCommandListException("The command: '" + command + "' does not exist as a command");
+            throw new CommandListException("The command: '" + command + "' does not exist as a command");
         }
 
         var cmd = _commands.First(x => Regex.IsMatch(command, "^" + x.RegexStr + "$"));
-        if (cmd.IsAsync)
+        if (cmd.AsyncType == AsyncType.Simple)
+        {
+            await ((Func<Task>)cmd.GetAction).Invoke();
+        }
+        else if (cmd.AsyncType == AsyncType.WithParameter)
         {
             await ((Func<string, Task>)cmd.GetAction).Invoke(command);
         }
