@@ -40,7 +40,7 @@ public class ArgumentParsingTests : BaseUnitTest
     public void T003()
     {
         var t = new TestArgs();
-        Assert.Throws<ArgumentNullException>(() => t.ParseArguments(new string?[] {null}));
+        Assert.Throws<ArgumentNullException>(() => t.ParseArguments(new string?[] {null}!));
     }
 
     [Theory(DisplayName = "004 All argument types are possible including custom params and custom callbacks")]
