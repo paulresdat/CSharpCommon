@@ -22,12 +22,12 @@ internal class CommandDetail<T> : CommandDetail where T : Delegate
     public T? Action
     {
         set => ActionVal = value;
-        get => (T) GetAction;
+        // get => (T) GetAction;
     }
 
     public Func<Task> SimpleAsync
     {
-        get => (Func<Task>) GetAction;
+        // get => (Func<Task>) GetAction;
         set
         {
             AsyncType = AsyncType.Simple;
@@ -42,7 +42,6 @@ internal class CommandDetail<T> : CommandDetail where T : Delegate
             AsyncType = AsyncType.WithParameter;
             ActionVal = value;
         }
-
-        get => (Func<string, Task>)GetAction;
+        // get => (Func<string, Task>)GetAction;
     }
 }

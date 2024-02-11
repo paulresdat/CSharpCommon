@@ -4,12 +4,48 @@ public interface ICommandLineProcessor
 {
     string ReadLine();
     void SetConsolePrompt(string prompt = "$> ");
+    CancellationTokenSource TokenSource { get; set; }
 }
 
 public class CommandLineProcessor : ICommandLineProcessor
 {
+    #region properties and dependencies
+    private readonly IConsoleOutput _cnsl;
+
+    private CancellationTokenSource? _tokenSource;
+    public CancellationTokenSource TokenSource
+    {
+        get
+        {
+            // we dynamically create one when fetching the first time
+            _tokenSource ??= new CancellationTokenSource();
+            return _tokenSource;
+        }
+
+        set
+        {
+            if (_tokenSource is not null && !_tokenSource.IsCancellationRequested)
+            {
+                throw new InvalidOperationException("Cancellation token source was already set.");
+            }
+            _tokenSource = value;
+        }
+    }
+
     private readonly List<string> _history = new();
     private string Prompt { get; set; } = "$> ";
+    private readonly List<char> _currentCharacterList = new();
+    private int ArrowLeftCount { get; set; } = 0;
+    private int SpliceIdx { get; set; } = 0;
+    private readonly CurrentCursorPosition _currentCursorPosition = new();
+    // private int EndCursorIdx => Prompt.Length + _currentCharacterList.Count;
+    #endregion
+
+    public CommandLineProcessor(IConsoleOutput output)
+    {
+        _cnsl = output;
+    }
+
 
     public void SetConsolePrompt(string prompt = "$> ")
     {
@@ -24,38 +60,34 @@ public class CommandLineProcessor : ICommandLineProcessor
         }
         catch (Exception)
         {
-            Console.WriteLine("Exception was thrown: ");
-            Console.WriteLine("Current character list: " + string.Join("", _currentCharacterList));
-            Console.WriteLine("Arrow at: " + ArrowLeftCount);
-            Console.WriteLine("Spliced idx at: " + SpliceIdx);
+            _cnsl.WriteLine("Exception was thrown: ")
+                .WriteLine("Current character list: " + string.Join("", _currentCharacterList))
+                .WriteLine("Arrow at: " + ArrowLeftCount)
+                .WriteLine("Spliced idx at: " + SpliceIdx);
             throw;
         }
     }
-
-    private readonly List<char> _currentCharacterList = new();
-    private int ArrowLeftCount { get; set; } = 0;
-    private int SpliceIdx { get; set; } = 0;
 
     private void Clear()
     {
         _currentCharacterList.Clear();
     }
 
-    private void AddCharacterAtEnd(char what)
-    {
-        _currentCharacterList.Add(what);
-    }
+    // private void AddCharacterAtEnd(char what)
+    // {
+    //     _currentCharacterList.Add(what);
+    // }
 
     private void InsertCharacters(string what)
     {
         _currentCharacterList.AddRange(what);
     }
 
-    private void SpliceIn(int at, char what)
-    {
-        _currentCharacterList.RemoveAt(at);
-        _currentCharacterList.Insert(at, what);
-    }
+    // private void SpliceIn(int at, char what)
+    // {
+    //     _currentCharacterList.RemoveAt(at);
+    //     _currentCharacterList.Insert(at, what);
+    // }
 
     private void InsertAt(int at, char what)
     {
@@ -64,61 +96,52 @@ public class CommandLineProcessor : ICommandLineProcessor
 
     private void ClearConsoleWithPrompt(string addedData = "")
     {
-        Console.Write("\r                                     \r" + Prompt + addedData);
+        _cnsl.Write("\r                                     \r" + Prompt + addedData);
     }
 
     private void ClearConsoleWithPrompt(List<char> characterList)
     {
-        Console.Write("\r" + Prompt + string.Join("", characterList));
+        _cnsl.Write("\r" + Prompt + string.Join("", characterList));
     }
 
     private void Backspace()
     {
         CursorToTheLeft(2);
-        Console.Write(" ");
+        _cnsl.Write(" ");
         CursorToTheLeft(1);
     }
 
     private void CursorToTheLeft(int byHowMuch)
     {
-        Console.SetCursorPosition(Console.CursorLeft - byHowMuch, Console.CursorTop );
+        _cnsl.SetCursorPosition(_cnsl.CursorLeft - byHowMuch, _cnsl.CursorTop);
     }
 
     private void CursorToTheRight(int byHowMuch)
     {
-        Console.SetCursorPosition(Console.CursorLeft + byHowMuch, Console.CursorTop );
+        _cnsl.SetCursorPosition(_cnsl.CursorLeft + byHowMuch, _cnsl.CursorTop);
     }
 
 
-    private class CurrentCursorPosition
-    {
-        public int FromLeft { get; set; }
-        public int FromTop { get; set; }
-    }
-
-    private readonly CurrentCursorPosition _currentCursorPosition = new();
     private void SaveCursorPosition()
     {
-        _currentCursorPosition.FromLeft = Console.CursorLeft;
-        _currentCursorPosition.FromTop = Console.CursorTop;
+        _currentCursorPosition.FromLeft = _cnsl.CursorLeft;
+        _currentCursorPosition.FromTop = _cnsl.CursorTop;
     }
 
     private void ResetCursorToLastSaveAfterInput()
     {
-        Console.SetCursorPosition(_currentCursorPosition.FromLeft, _currentCursorPosition.FromTop);
+        _cnsl.SetCursorPosition(_currentCursorPosition.FromLeft, _currentCursorPosition.FromTop);
     }
-
-    private int EndCursorIdx => Prompt.Length + _currentCharacterList.Count;
 
     private string ReadLineInternal()
     {
         _currentCharacterList.Clear();
         ArrowLeftCount = 0;
         var idx = _history.Count;
-        Console.Write(Prompt);
-        while (true)
+        _cnsl.Write(Prompt);
+        while (!TokenSource.IsCancellationRequested)
         {
-            var chInt = Console.ReadKey();
+            var chInt = _cnsl.ReadKey();
             SaveCursorPosition();
             if (chInt.Key == ConsoleKey.UpArrow)
             {
@@ -168,7 +191,7 @@ public class CommandLineProcessor : ICommandLineProcessor
             }
             else if (chInt.Key == ConsoleKey.Enter)
             {
-                Console.WriteLine();
+                _cnsl.WriteLine();
                 var command = string.Join("", _currentCharacterList);
                 _history.Add(command);
                 return command;
@@ -197,5 +220,14 @@ public class CommandLineProcessor : ICommandLineProcessor
                 ResetCursorToLastSaveAfterInput();
             }
         }
+        
+        // default in case the while statement triggers out
+        return string.Empty;
+    }
+    
+    private class CurrentCursorPosition
+    {
+        public int FromLeft { get; set; }
+        public int FromTop { get; set; }
     }
 }
