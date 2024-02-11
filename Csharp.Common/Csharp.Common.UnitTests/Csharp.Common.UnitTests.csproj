@@ -30,8 +30,4 @@
       </None>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Common\ConsoleCommander\" />
-    </ItemGroup>
-
 </Project>

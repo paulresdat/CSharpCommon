@@ -10,9 +10,14 @@ public interface IConsoleOutput
     IConsoleOutput Write(string message, ConsoleColor? foregroundColor = null, ConsoleColor? backgroundColor = null);
     IConsoleOutput WriteLine(string message, ConsoleColor? foregroundColor = null, ConsoleColor? backgroundColor = null);
     IConsoleOutput WriteLine(object message, ConsoleColor? foregroundColor = null, ConsoleColor? backgroundColor = null);
+
+    void SetCursorPosition(int left, int top);
+    int CursorLeft { get; set; }
+    int CursorTop { get; set; }
+    ConsoleKeyInfo ReadKey();
 }
 
-// Console is a wrapper around Console.Write with some color syntax niceties.  I don't think
+// ConsoleOutput is a wrapper around Console with some color syntax niceties.  I don't think
 // it needs to be covered by unit tests at this time.  Wrapping console.write to test
 // is over doing it in my opinion.
 [ExcludeFromCodeCoverage]
@@ -72,6 +77,28 @@ public class ConsoleOutput : IConsoleOutput
     {
         WrapPrint(message, foregroundColor, backgroundColor, Console.WriteLine);
         return this;
+    }
+
+    public void SetCursorPosition(int left, int top)
+    {
+        Console.SetCursorPosition(left, top);
+    }
+
+    public int CursorLeft
+    {
+        get => Console.CursorLeft;
+        set => Console.CursorLeft = value;
+    }
+
+    public int CursorTop
+    {
+        get => Console.CursorTop;
+        set => Console.CursorTop = value;
+    }
+
+    public ConsoleKeyInfo ReadKey()
+    {
+        return Console.ReadKey();
     }
 
     private void WrapPrint(object data, ConsoleColor? foregroundColor, ConsoleColor? backgroundColor, Action<string?> callback)

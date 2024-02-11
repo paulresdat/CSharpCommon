@@ -8,6 +8,13 @@ public interface ICommandLineProcessor
 
 public class CommandLineProcessor : ICommandLineProcessor
 {
+    private readonly IConsoleOutput _cnsl;
+
+    public CommandLineProcessor(IConsoleOutput output)
+    {
+        _cnsl = output;
+    }
+
     private readonly List<string> _history = new();
     private string Prompt { get; set; } = "$> ";
 
@@ -24,10 +31,10 @@ public class CommandLineProcessor : ICommandLineProcessor
         }
         catch (Exception)
         {
-            Console.WriteLine("Exception was thrown: ");
-            Console.WriteLine("Current character list: " + string.Join("", _currentCharacterList));
-            Console.WriteLine("Arrow at: " + ArrowLeftCount);
-            Console.WriteLine("Spliced idx at: " + SpliceIdx);
+            _cnsl.WriteLine("Exception was thrown: ")
+                .WriteLine("Current character list: " + string.Join("", _currentCharacterList))
+                .WriteLine("Arrow at: " + ArrowLeftCount)
+                .WriteLine("Spliced idx at: " + SpliceIdx);
             throw;
         }
     }
@@ -64,29 +71,29 @@ public class CommandLineProcessor : ICommandLineProcessor
 
     private void ClearConsoleWithPrompt(string addedData = "")
     {
-        Console.Write("\r                                     \r" + Prompt + addedData);
+        _cnsl.Write("\r                                     \r" + Prompt + addedData);
     }
 
     private void ClearConsoleWithPrompt(List<char> characterList)
     {
-        Console.Write("\r" + Prompt + string.Join("", characterList));
+        _cnsl.Write("\r" + Prompt + string.Join("", characterList));
     }
 
     private void Backspace()
     {
         CursorToTheLeft(2);
-        Console.Write(" ");
+        _cnsl.Write(" ");
         CursorToTheLeft(1);
     }
 
     private void CursorToTheLeft(int byHowMuch)
     {
-        Console.SetCursorPosition(Console.CursorLeft - byHowMuch, Console.CursorTop );
+        _cnsl.SetCursorPosition(_cnsl.CursorLeft - byHowMuch, _cnsl.CursorTop);
     }
 
     private void CursorToTheRight(int byHowMuch)
     {
-        Console.SetCursorPosition(Console.CursorLeft + byHowMuch, Console.CursorTop );
+        _cnsl.SetCursorPosition(_cnsl.CursorLeft + byHowMuch, _cnsl.CursorTop);
     }
 
 
@@ -99,13 +106,13 @@ public class CommandLineProcessor : ICommandLineProcessor
     private readonly CurrentCursorPosition _currentCursorPosition = new();
     private void SaveCursorPosition()
     {
-        _currentCursorPosition.FromLeft = Console.CursorLeft;
-        _currentCursorPosition.FromTop = Console.CursorTop;
+        _currentCursorPosition.FromLeft = _cnsl.CursorLeft;
+        _currentCursorPosition.FromTop = _cnsl.CursorTop;
     }
 
     private void ResetCursorToLastSaveAfterInput()
     {
-        Console.SetCursorPosition(_currentCursorPosition.FromLeft, _currentCursorPosition.FromTop);
+        _cnsl.SetCursorPosition(_currentCursorPosition.FromLeft, _currentCursorPosition.FromTop);
     }
 
     private int EndCursorIdx => Prompt.Length + _currentCharacterList.Count;
@@ -115,10 +122,10 @@ public class CommandLineProcessor : ICommandLineProcessor
         _currentCharacterList.Clear();
         ArrowLeftCount = 0;
         var idx = _history.Count;
-        Console.Write(Prompt);
+        _cnsl.Write(Prompt);
         while (true)
         {
-            var chInt = Console.ReadKey();
+            var chInt = _cnsl.ReadKey();
             SaveCursorPosition();
             if (chInt.Key == ConsoleKey.UpArrow)
             {
@@ -168,7 +175,7 @@ public class CommandLineProcessor : ICommandLineProcessor
             }
             else if (chInt.Key == ConsoleKey.Enter)
             {
-                Console.WriteLine();
+                _cnsl.WriteLine();
                 var command = string.Join("", _currentCharacterList);
                 _history.Add(command);
                 return command;

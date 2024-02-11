@@ -8,7 +8,7 @@ public interface IConsoleCommandList
     IConsoleCommandList AddCommand(string command, string description, Action<string> action, string? regex = null);
     IConsoleCommandList AddCommand(string command, string description, Func<Task> action, string? regex = null);
     IConsoleCommandList AddCommand(string command, string description, Func<string, Task> action, string? regex = null);
-    Task RunCommand(string command);
+    Task RunCommandAsync(string command);
     List<string[]> Commands { get; }
 }
 
@@ -75,7 +75,7 @@ public class CommandList : IConsoleCommandList
         return this;
     }
 
-    public async Task RunCommand(string command)
+    public async Task RunCommandAsync(string command)
     {
         if (command == "")
         {

@@ -243,7 +243,7 @@ public abstract class CliCommander : ICommandListFluency, ICli
             try
             {
                 var data = CommandLineProcessor.ReadLine();
-                await Commands.RunCommand(data.Trim());
+                await Commands.RunCommandAsync(data.Trim());
             }
             catch (CommandListException e)
             {
