@@ -2,7 +2,7 @@ namespace Csharp.Common.EntityFramework.Domain.Sql.ScriptLoader;
 
 public class SqlScriptLoader
 {
-    private readonly string _startupPath;
+    private readonly string? _startupPath;
 
     private readonly string _dboPath;
 

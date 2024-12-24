@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -44,7 +43,7 @@ public abstract class ArgumentParsing
     {
         HelpHeader = helpHeaderAction;
     }
-    
+
     private void ShowHelp(OptionSet? p)
     {
         HelpHeader?.Invoke();
@@ -61,7 +60,7 @@ public abstract class ArgumentParsing
 /// meta descriptions provided by it.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public abstract class ArgumentParsing<T> : ArgumentParsing where T: ArgumentParsingDto, new()
+public class ArgumentParsing<T> : ArgumentParsing where T: ArgumentParsingDto, new()
 {
     [Obsolete("A direct call to help is not supported when parsing arguments using a declarative class")]
     public new bool Help => throw new InvalidOperationException();
@@ -75,7 +74,12 @@ public abstract class ArgumentParsing<T> : ArgumentParsing where T: ArgumentPars
 
     private Dictionary<string, CustomCallback> Callbacks { get; } = new();
 
-    protected abstract void SetCustomCallbacks();
+    // protected abstract void SetCustomCallbacks();
+
+    private void SetCustomCallbacks()
+    {
+
+    }
 
     public override void ParseArguments(string[] args)
     {
@@ -147,7 +151,7 @@ public abstract class ArgumentParsing<T> : ArgumentParsing where T: ArgumentPars
         foreach (var prop in props)
         {
             var commandType = GetValueType(prop);
-            var commandDesc = 
+            var commandDesc =
                 prop.GetCustomAttribute<ArgumentDefinitionAttribute>() ??
                     new ArgumentDefinitionAttribute(
                         ParameterizePropName(prop.Name) + (commandType != ValueType.Boolean ? "=" : ""), prop.Name);
@@ -226,7 +230,7 @@ public abstract class ArgumentParsing<T> : ArgumentParsing where T: ArgumentPars
         {
             return ValueType.String;
         }
-        
+
         if (prop.PropertyType == typeof(bool))
         {
             return ValueType.Boolean;
@@ -265,7 +269,7 @@ public abstract class ArgumentParsing<T> : ArgumentParsing where T: ArgumentPars
         Boolean,
         Unsupported,
     }
-    
+
     private enum CallbackType
     {
         Action,
