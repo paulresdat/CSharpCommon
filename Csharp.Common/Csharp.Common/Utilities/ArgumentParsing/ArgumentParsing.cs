@@ -16,12 +16,16 @@ namespace Csharp.Common.Utilities.ArgumentParsing;
 /// </summary>
 public abstract class ArgumentParsing
 {
-    // Public so that you can check if help has been called
-    // and immediately quit
-    public bool Help { get; set; } = false;
-
+    private bool Help { get; set; } = false;
     protected OptionSet? Options { get; set; }
     private Action? HelpHeader { get; set; }
+
+    public static T Parse<T>(string[] args) where T : ArgumentParsingClassDefinition, new()
+    {
+        var argParser = new ArgumentParsingWrapper<T>();
+        argParser.ParseArguments(args);
+        return argParser.Args;
+    }
 
     protected virtual void SetOptions(OptionSet optionSet)
     {
@@ -53,6 +57,10 @@ public abstract class ArgumentParsing
     }
 }
 
+internal class ArgumentParsingWrapper<T> : ArgumentParsing<T> where T : ArgumentParsingClassDefinition, new()
+{
+
+}
 
 /// <summary>
 /// The new way of argument parsing, where it uses a passed object to interpret
@@ -60,8 +68,15 @@ public abstract class ArgumentParsing
 /// meta descriptions provided by it.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class ArgumentParsing<T> : ArgumentParsing where T: ArgumentParsingDto, new()
+public class ArgumentParsing<T> : ArgumentParsing where T: ArgumentParsingClassDefinition, new()
 {
+    public static T Parse(string[] args)
+    {
+        var argParser = new ArgumentParsingWrapper<T>();
+        argParser.ParseArguments(args);
+        return argParser.Args;
+    }
+
     [Obsolete("A direct call to help is not supported when parsing arguments using a declarative class")]
     public new bool Help => throw new InvalidOperationException();
     public bool AskedForHelp => Args.Help;
@@ -307,20 +322,15 @@ public class ArgumentParsing<T> : ArgumentParsing where T: ArgumentParsingDto, n
     }
 }
 
-public class ArgumentDefinitionAttribute : Attribute
+public class ArgumentDefinitionAttribute(string name, string description) : Attribute
 {
-    public string ArgumentName { get; set; }
-    public string Description { get; set; }
+    public string ArgumentName { get; set; } = name;
+    public string Description { get; set; } = description;
 
-    public ArgumentDefinitionAttribute(string name, string description)
-    {
-        // probably should validate but none for now
-        ArgumentName = name;
-        Description = description;
-    }
+    // probably should validate but none for now
 }
 
-public abstract class ArgumentParsingDto
+public abstract class ArgumentParsingClassDefinition
 {
     [ArgumentDefinition("h|help", "Help screen")]
     public bool Help { get; set; }
