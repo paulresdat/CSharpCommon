@@ -66,6 +66,10 @@ public class ArgumentParser<T> : IArgumentParserCustomInterpreting<T> where T: A
         get => _parsedArgs ?? throw new InvalidOperationException();
     }
 
+    protected virtual void SetCustomCallbacks()
+    {
+    }
+
     /// <summary>
     /// Overrides Console with IConsoleOutput for injection and testing.
     /// </summary>
@@ -75,12 +79,31 @@ public class ArgumentParser<T> : IArgumentParserCustomInterpreting<T> where T: A
         Output = consoleOutput;
     }
 
+    protected ArgumentParser<T> SetCustomCallback<TProp>(Expression<Func<T, TProp>> expression, Action<T> action)
+    {
+        var name = ((MemberExpression) expression.Body).Member.Name;
+        var customCallback = new InternalCallback();
+        customCallback.Set(action);
+        Callbacks[name] = customCallback;
+        return this;
+    }
+
+    protected ArgumentParser<T> SetCustomCallback<TProp>(Expression<Func<T, TProp>> expression, Action<T, string> action)
+    {
+        var name = ((MemberExpression) expression.Body).Member.Name;
+        var customCallback = new InternalCallback();
+        customCallback.Set(action);
+        Callbacks[name] = customCallback;
+        return this;
+    }
+
     /// <summary>
     /// Parses the arguments of a string using the Options.cs suite.
     /// </summary>
     /// <param name="args">The array of string values supplied from the command line</param>
     public void ParseArguments(string[] args)
     {
+        SetCustomCallbacks();
         SetOptions();
         _parsedArgs = Activator.CreateInstance<T>();
         try
