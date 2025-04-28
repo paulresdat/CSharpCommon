@@ -2,7 +2,31 @@ namespace Csharp.Common.EntityFramework.Domain.Sql.ScriptLoader;
 
 public class SqlScriptLoader
 {
-    private readonly string? _startupPath;
+    public enum LoadType
+    {
+        Create,
+        Drop,
+        Run,
+    }
+
+    public enum Types
+    {
+        // these need analysis on their need
+        InitialLoad,
+        DataCleanup,
+        Security,
+
+        // these are needed and should be kept
+        ServiceBrokers,
+        Functions,
+        Procedures,
+        Seeder,
+        Triggers,
+        Views,
+        SpatialIndex,
+    }
+
+    private readonly string _startupPath;
 
     private readonly string _dboPath;
 
@@ -12,9 +36,9 @@ public class SqlScriptLoader
         _dboPath = JoinPath("SqlScripts");
     }
 
-    public SqlScriptLoader(string baseDirectory)
+    public SqlScriptLoader(string? baseDirectory)
     {
-        _startupPath = baseDirectory;
+        _startupPath = baseDirectory ?? AppDomain.CurrentDomain.BaseDirectory;
         _dboPath = JoinPath("SqlScripts");
     }
 
@@ -51,6 +75,52 @@ public class SqlScriptLoader
     public string CreateFromSql(string sqlFileName, Types enumType)
     {
         return File.ReadAllText(JoinPath(GetPath(enumType, LoadType.Create), sqlFileName));
+    }
+
+    public string CreateFromSql(Type annotatedType, Types enumType, string? timestamp = null)
+    {
+        var detail = SqlScriptReflection.GetDetailFromType(annotatedType);
+        var identifierAttribute = detail.Identifier;
+        var fileName = Standardize(identifierAttribute.FileName) + (timestamp is not null ? "_" + timestamp : "") + ".sql";
+        var text = File.ReadAllText(JoinPath(GetPath(enumType, LoadType.Create), fileName));
+        text = ApplyInterpolation(detail, identifierAttribute.FileName, enumType, text);
+        return text;
+    }
+
+    private string ApplyInterpolation(SqlScriptDetail detail, string fileName, Types enumType, string text)
+    {
+        if (detail.HasInterpolatorAttribute)
+        {
+            foreach (var interpolatorAttr in detail.InterpolatorAttributes)
+            {
+                var interpolator = (SqlScriptInterpolator)
+                    (Activator.CreateInstance(interpolatorAttr.InterpolatorType) ??
+                        throw new InvalidOperationException());
+                text = interpolator.GetInterpolator().Invoke(fileName, enumType, text);
+            }
+        }
+
+        return text;
+    }
+
+    public string DropFromSql(Type annotatedType, Types enumType)
+    {
+        var detail = SqlScriptReflection.GetDetailFromType(annotatedType);
+        var identifierAttribute = detail.Identifier;
+        var fileName = Standardize(identifierAttribute.FileName) + ".sql";
+        var text = File.ReadAllText(JoinPath(GetPath(enumType, LoadType.Drop), fileName));
+        text = ApplyInterpolation(detail, identifierAttribute.FileName, enumType, text);
+        return text;
+    }
+
+    private string Standardize(string fileName)
+    {
+        if (fileName.EndsWith(".sql"))
+        {
+            return string.Join(".", fileName.Split(".")[..^2]);
+        }
+
+        return fileName;
     }
 
     public string DropFromSql(string sqlFileName, Types enumType)
