@@ -26,7 +26,7 @@ public class EntityProcedure: IEntityProcedure
 
     public EntityProcedure()
     {
-        
+
     }
 
     public IEntityProcedure SetDbContext(IAppDbContext dbContext)
@@ -80,7 +80,7 @@ public class EntityProcedure: IEntityProcedure
         return this;
     }
     #endregion
-    
+
     #region execution methods
     private IQueryable<T> PrepareProcedureAndExecute<T>() where T: class
     {
@@ -184,7 +184,7 @@ public class EntityProcedure: IEntityProcedure
         {
             return "'" + parameter + "'";
         }
-        
+
         if (parameter is DateTime)
         {
             throw new NotImplementedException("DateTime not accepted as a parameter at this time");
@@ -202,14 +202,14 @@ public class EntityProcedure: IEntityProcedure
         return returnData;
     }
     #endregion
-    
+
     #region projection and queryable methods
     public TDest? ProjectToFirstOrDefault<TSource, TDest>(MapperConfiguration mapperConfig)
         where TDest : class
         where TSource : class
     {
         var queryable =  PrepareProcedureAndExecute<TSource>().ToList();
-    
+
         return queryable.AsQueryable<TSource>()
             .ProjectTo<TDest>(mapperConfig)
             // ef wraps a query called from FirstOrDefault in a select statement and that's not suitable for a proc
@@ -217,18 +217,18 @@ public class EntityProcedure: IEntityProcedure
             .ToList()
             .FirstOrDefault();
     }
-    
+
     public virtual IQueryable<TSource> AsQueryable<TSource>() where TSource : class
     {
         return PrepareProcedureAndExecute<TSource>();
     }
-    
+
     public List<TDest> ProjectToList<TSource, TDest>(MapperConfiguration mapperConfig)
         where TSource : class
         where TDest : class
     {
         var queryable = PrepareProcedureAndExecute<TSource>().ToList();
-    
+
         return queryable.AsQueryable()
             .ProjectTo<TDest>(mapperConfig)
             .ToList();
@@ -244,7 +244,7 @@ public class EntityProcedure<TSource> : EntityProcedure, IEntityProcedure<TSourc
 
     public EntityProcedure() : base()
     {
-        
+
     }
 
     public List<TDest> ProjectToList<TDest>(MapperConfiguration mapperConfig) where TDest : class
