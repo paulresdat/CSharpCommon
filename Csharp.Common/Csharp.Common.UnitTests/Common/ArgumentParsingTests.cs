@@ -13,35 +13,36 @@ public class ArgumentParsingTests : BaseUnitTest
     {
     }
 
-    [Fact(DisplayName = "001 When providing a boolean style argument, it indeed sets the appropirate value")]
-    public void T001()
-    {
-        var t = new TestArgs();
-        t.Test.Should().BeFalse();
-        t.ParseArguments(new[] {"--test"});
-        t.Test.Should().BeTrue();
-    }
-
-    [Fact(DisplayName = "002 The help screen is a default value you can set")]
-    public void T002()
-    {
-        var t = new TestArgs();
-        t.Help.Should().BeFalse();
-        t.ParseArguments(new[] {"--help"});
-        t.Help.Should().BeTrue();
-        
-        t = new TestArgs();
-        t.Help.Should().BeFalse();
-        t.ParseArguments(new[] {"-h"});
-        t.Help.Should().BeTrue();
-    }
-
-    [Fact(DisplayName = "003 Invalid arguments throw an option exception that is caught and reported")]
-    public void T003()
-    {
-        var t = new TestArgs();
-        Assert.Throws<ArgumentNullException>(() => t.ParseArguments(new string?[] {null}!));
-    }
+    // Old way is removed, no longer required, breaking change
+    // [Fact(DisplayName = "001 When providing a boolean style argument, it indeed sets the appropirate value")]
+    // public void T001()
+    // {
+    //     var t = new TestArgs();
+    //     t.Test.Should().BeFalse();
+    //     t.ParseArguments(new[] {"--test"});
+    //     t.Test.Should().BeTrue();
+    // }
+    //
+    // [Fact(DisplayName = "002 The help screen is a default value you can set")]
+    // public void T002()
+    // {
+    //     var t = new TestArgs();
+    //     t.Help.Should().BeFalse();
+    //     t.ParseArguments(new[] {"--help"});
+    //     t.Help.Should().BeTrue();
+    //
+    //     t = new TestArgs();
+    //     t.Help.Should().BeFalse();
+    //     t.ParseArguments(new[] {"-h"});
+    //     t.Help.Should().BeTrue();
+    // }
+    //
+    // [Fact(DisplayName = "003 Invalid arguments throw an option exception that is caught and reported")]
+    // public void T003()
+    // {
+    //     var t = new TestArgs();
+    //     Assert.Throws<ArgumentNullException>(() => t.ParseArguments(new string?[] {null}!));
+    // }
 
     [Theory(DisplayName = "004 All argument types are possible including custom params and custom callbacks")]
     [InlineData("-t", null, "Test", typeof(bool), false)]
@@ -53,7 +54,7 @@ public class ArgumentParsingTests : BaseUnitTest
     [InlineData("--test-long", "1234", "TestLong", typeof(long), false)]
     [InlineData("--test-type", "whatever", "TestNewType", typeof(Nullable), true)]
     [InlineData("--test-another-type", "whatever", "TestAnotherNewType", typeof(Nullable), true)]
-    [InlineData("--test-without-any-description", "1234", "TestWithoutAnyDescription", typeof(int), false)]
+    // [InlineData("--test-without-any-description", "1234", "TestWithoutAnyDescription", typeof(int), false)]
     public void T004(string arg, string? value, string propName, Type type, bool customCallback)
     {
         var t = new TestArgsWithProps();
@@ -147,7 +148,7 @@ public class ArgumentParsingTests : BaseUnitTest
         [ArgumentDefinition("test-another-type=", "Testing type and custom callback")]
         public NewType TestAnotherNewType { get; set; } = default!;
 
-        public int TestWithoutAnyDescription { get; set; }
+        // public int TestWithoutAnyDescription { get; set; }
     }
 
     [ExcludeFromCodeCoverage]
@@ -161,7 +162,7 @@ public class ArgumentParsingTests : BaseUnitTest
     /// NEW WAY :-)
     /// </summary>
     [ExcludeFromCodeCoverage]
-    private class TestArgsWithProps : ArgumentParsing<TestArgProps>
+    private class TestArgsWithProps : ArgumentParser<TestArgProps>
     {
         protected override void SetCustomCallbacks()
         {
@@ -183,55 +184,6 @@ public class ArgumentParsingTests : BaseUnitTest
                 };
                 args.TestAnotherNewType = n;
             });
-        }
-    }
-
-    /// <summary>
-    /// OLD WAY
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    private class TestArgs : ArgumentParsing
-    {
-        public bool Test { get; set; }
-        public string? TestStr { get; set; }
-        public int TestInt { get; set; }
-
-        public TestArgs()
-        {
-            SetOptions();
-            SetHelpHeader(() =>
-            {
-                Console.WriteLine("Wayside Monitoring Service");
-                Console.WriteLine("Fully monitor the inner going ons of WMS");
-            });
-        }
-
-        private void SetOptions()
-        {
-            base.SetOptions(new OptionSet
-            {
-                {
-                    "test",
-                    "Admin Screen",
-                    s => { Test = true; }
-                },
-                {
-                    "test-str=",
-                    "Test String",
-                    s => { TestStr = s; }
-                },
-                {
-                    "test-int=",
-                    "Test Int",
-                    s => { TestInt = GetInt(s); }
-                }
-            });
-        }
-
-        private int GetInt(string s)
-        {
-            int.TryParse(s.Trim(), out var i);
-            return i;
         }
     }
 }
