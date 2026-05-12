@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Csharp.Common.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class BuilderTests : IntegrationTestingFixture
 {
     public BuilderTests()
