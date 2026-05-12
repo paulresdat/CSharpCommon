@@ -3,10 +3,14 @@ using Csharp.Common.Builders;
 using Csharp.Common.EntityFramework.Builders;
 using Csharp.Common.EntityFramework.Domain;
 using Csharp.Common.EntityFramework.Domain.Options;
+using Csharp.Common.EntityFramework.UnitTesting.Extensions;
 using Csharp.Common.UnitTesting;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,8 +25,15 @@ public class BuilderDbContextTests : BaseUnitTest
         public int NumberOfQueryRetriesBeforeSendingException { get; set; }
     }
 
-    public interface IMockDbContext : IAppDbContext;
+    public interface IMockDbContext : IAppDbContext
+    {
+        DbSet<GenericDto> Dtos { get; set; }
+    }
     private readonly ITestOutputHelper _output;
+
+    private class Hi
+    {
+    }
 
     public BuilderDbContextTests(ITestOutputHelper output)
     {
@@ -30,6 +41,7 @@ public class BuilderDbContextTests : BaseUnitTest
         MockOption<IAppDbContextOptions>(new DbOptions());
         Mock<IMockDbContext>(m =>
         {
+            var dbSet = m.AddDbSet(x => x.Dtos, new List<GenericDto>().AsQueryable());
             m.Setup(x => x.SaveChanges()).Returns(1);
         });
     }
@@ -82,7 +94,7 @@ public class BuilderDbContextTests : BaseUnitTest
             .BuildAndSave());
     }
 
-    private class GenericDto
+    public class GenericDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;

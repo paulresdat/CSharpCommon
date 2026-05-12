@@ -17,7 +17,9 @@ public static class AppDbContextUnitTestExtensions
         mockDbSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(data.Provider);
         mockDbSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
         mockDbSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
-        mockDbSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
+        mockDbSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator);
+        mockDbSet.Setup(x => x.Add(It.IsAny<T>()));
+        dbContext.Setup(x => x.Set<T>()).Returns(mockDbSet.Object);
         dbContext.Setup(predicate).Returns(mockDbSet.Object);
         return dbContext;
     }
