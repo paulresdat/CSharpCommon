@@ -41,7 +41,7 @@ public class BuilderDbContextTests : BaseUnitTest
         MockOption<IAppDbContextOptions>(new DbOptions());
         Mock<IMockDbContext>(m =>
         {
-            var dbSet = m.AddDbSet(x => x.Dtos, new List<GenericDto>().AsQueryable());
+            m.AddDbSet(x => x.Dtos, new List<GenericDto>().AsQueryable());
             m.Setup(x => x.SaveChanges()).Returns(1);
         });
     }
