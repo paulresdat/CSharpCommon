@@ -1,6 +1,8 @@
+using Csharp.Common.Builders;
+using Csharp.Common.EntityFramework.Domain;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Csharp.Common.Builders;
+namespace Csharp.Common.EntityFramework.Builders;
 
 /// <summary>
 /// <para>This db connect class handles the population of the DbContext object.</para>
@@ -15,7 +17,7 @@ namespace Csharp.Common.Builders;
 /// <typeparam name="TModel"></typeparam>
 /// <typeparam name="TParentModel"></typeparam>
 public abstract class BuilderDbConnector<TDbContext, TModel, TParentModel> : BuilderAbstract<TModel, TParentModel> 
-    where TDbContext: class 
+    where TDbContext: class, IAppDbContext
     where TModel: class, new()
     where TParentModel: BuilderAbstract<TModel, TParentModel>, new()
 {
@@ -49,9 +51,3 @@ public abstract class BuilderDbConnector<TDbContext, TModel, TParentModel> : Bui
     }
 }
 
-public class BuilderException : Exception
-{
-    public BuilderException(string message) : base(message)
-    {
-    }
-}

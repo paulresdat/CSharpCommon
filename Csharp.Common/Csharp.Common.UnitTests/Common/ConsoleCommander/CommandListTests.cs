@@ -12,7 +12,7 @@ public class CommandListTests : BaseUnitTest
 {
     public CommandListTests()
     {
-        ServiceCollection.AddSingleton<IConsoleCommandList, CommandList>();
+        Services.AddSingleton<IConsoleCommandList, CommandList>();
     }
 
     [Fact(DisplayName = "001 Running a simple command indeed runs it")]

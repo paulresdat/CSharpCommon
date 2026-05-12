@@ -17,13 +17,13 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
     {
         _output = output;
 
-        ServiceCollection.AddSingleton<IThreadSafeLockingFactory, ThreadSafeLockingFactory>();
-        ServiceCollection.AddSingleton<ThreadSafeOnLists>();
+        Services.AddSingleton<IThreadSafeLockingFactory, ThreadSafeLockingFactory>();
+        Services.AddSingleton<ThreadSafeOnLists>();
     }
 
     [Fact(DisplayName = "001 Thread Safe Lock works well on a list"
         , Skip = "Skipping since it is somewhat unpredictable on the build server with aggregate exceptions towards the end")]
-    public void T001()
+    public async Task T001()
     {
         var sp = GetNewServiceProvider;
         var service = sp.GetRequiredService<ThreadSafeOnLists>();
@@ -58,7 +58,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
             }
         });
 
-        Task.WaitAll(task1, task2);
+        await Task.WhenAll(task1, task2);
         
         // however the following is expected to run an aggregation error, maybe!??
         // on the build server this actually fails!  I think we can skip this test.
@@ -121,7 +121,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
     }
 
     [Fact(DisplayName = "003 Can read from a lock and write to a lock without collisions")]
-    public void T003()
+    public async Task T003()
     {
         var threadLocker = new ThreadLocker();
 
@@ -160,7 +160,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
             }
         });
 
-        Task.WaitAll(task1, task2, task3);
+        await Task.WhenAll(task1, task2, task3);
     }
 
     [Fact(DisplayName = "004 all calls with a return function indeed returns the result")]
@@ -245,7 +245,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
     public void T007()
     {
         AddMeltLogger<ThreadLockerLogger>();
-        ServiceCollection.AddSingleton<ThreadLockerLogger>();
+        Services.AddSingleton<ThreadLockerLogger>();
         var sp = GetNewServiceProvider;
         var locker = sp.GetRequiredService<ThreadLockerLogger>();
 

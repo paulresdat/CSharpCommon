@@ -17,17 +17,17 @@ public class ServiceExtensionTests : BaseUnitTest
     [Fact(DisplayName = "001 Refreshing singletons works as expected")]
     public void T001()
     {
-        ServiceCollection.AddSingleton<MySingleton>();
+        Services.AddSingleton<MySingleton>();
         var sp = GetNewServiceProvider;
         var ms = sp.GetRequiredService<MySingleton>();
         ms.Id.Should().Be(-1);
         ms.Id = 1;
-        ServiceCollection.RefreshSingleton(ms);
+        Services.RefreshSingleton(ms);
         sp = GetNewServiceProvider;
         ms = sp.GetRequiredService<MySingleton>();
         ms.Id.Should().Be(1);
         
-        ServiceCollection.RefreshSingleton<MySingleton>();
+        Services.RefreshSingleton<MySingleton>();
         sp = GetNewServiceProvider;
         ms = sp.GetRequiredService<MySingleton>();
         ms.Id.Should().Be(-1);
@@ -36,17 +36,17 @@ public class ServiceExtensionTests : BaseUnitTest
     [Fact(DisplayName = "002 Refreshing singletons with interface works as expected")]
     public void T002()
     {
-        ServiceCollection.AddSingleton<IMySingleton, MySingleton>();
+        Services.AddSingleton<IMySingleton, MySingleton>();
         var sp = GetNewServiceProvider;
         var ms = sp.GetRequiredService<IMySingleton>();
         ms.Id.Should().Be(-1);
         ms.Id = 1;
-        ServiceCollection.RefreshSingleton(ms);
+        Services.RefreshSingleton(ms);
         sp = GetNewServiceProvider;
         ms = sp.GetRequiredService<IMySingleton>();
         ms.Id.Should().Be(1);
 
-        ServiceCollection.RefreshSingleton<IMySingleton, MySingleton>();
+        Services.RefreshSingleton<IMySingleton, MySingleton>();
         sp = GetNewServiceProvider;
         ms = sp.GetRequiredService<IMySingleton>();
         ms.Id.Should().Be(-1);

@@ -21,7 +21,7 @@ public class AppSettingsTests : BaseUnitTest
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
 
-        ServiceCollection.Configure<TestAppSettings1>(builder.GetSection("TestAppSettings1"));
+        Services.Configure<TestAppSettings1>(builder.GetSection("TestAppSettings1"));
         AddAutoMapper(cfg =>
         {
             cfg.CreateMap<TestAppSettings1, TestAppSettings1Dto>();
@@ -31,7 +31,7 @@ public class AppSettingsTests : BaseUnitTest
     [Fact(DisplayName = "001 App Settings Watcher can retrieve the app settings class")]
     public void T001()
     {
-        ServiceCollection.AddSingleton<ITestAppSettingsWatcher, TestAppSettingsWatcher>();
+        Services.AddSingleton<ITestAppSettingsWatcher, TestAppSettingsWatcher>();
 
         var sp = GetNewServiceProvider;
         var watcher = sp.GetRequiredService<ITestAppSettingsWatcher>();
@@ -47,7 +47,7 @@ public class AppSettingsTests : BaseUnitTest
     [Fact(DisplayName = "002 App settings safe watcher will retrieve the app settings class as a dto")]
     public void T002()
     {
-        ServiceCollection.AddSingleton<ITestAppSettings1WatcherSafe, TestAppSettings1WatcherSafe>();
+        Services.AddSingleton<ITestAppSettings1WatcherSafe, TestAppSettings1WatcherSafe>();
         
         var sp = GetNewServiceProvider;
         var watcher = sp.GetRequiredService<ITestAppSettings1WatcherSafe>();
@@ -64,7 +64,7 @@ public class AppSettingsTests : BaseUnitTest
         "003 When a change comes in, the appsettings will return the new value when asked for and invoke the event")]
     public void T003()
     {
-        ServiceCollection.AddSingleton<ITestAppSettingsWatcher, TestAppSettingsWatcher>();
+        Services.AddSingleton<ITestAppSettingsWatcher, TestAppSettingsWatcher>();
 
         var onChange = false;
         var sp = GetNewServiceProvider;
@@ -120,7 +120,7 @@ public class AppSettingsTests : BaseUnitTest
         "004 When a change comes in for safe watcher, the appsettings will return the new value when asked for and invoke the event")]
     public void T004()
     {
-        ServiceCollection.AddSingleton<ITestAppSettings1WatcherSafe, TestAppSettings1WatcherSafe>();
+        Services.AddSingleton<ITestAppSettings1WatcherSafe, TestAppSettings1WatcherSafe>();
 
         TestAppSettings1Dto? onChange = null;
         var sp = GetNewServiceProvider;
@@ -175,7 +175,7 @@ public class AppSettingsTests : BaseUnitTest
         "005 When subscribing to the unsafe event, an exception is thrown for the safe watcher")]
     public void T005()
     {
-        ServiceCollection.AddSingleton<ITestAppSettings1WatcherSafe, TestAppSettings1WatcherSafe>();
+        Services.AddSingleton<ITestAppSettings1WatcherSafe, TestAppSettings1WatcherSafe>();
         var sp = GetNewServiceProvider;
         var watcher = sp.GetRequiredService<ITestAppSettings1WatcherSafe>();
 

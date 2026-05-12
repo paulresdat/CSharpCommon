@@ -15,7 +15,7 @@ public class CommandLineProcessTests : BaseUnitTest
     public CommandLineProcessTests()
     {
         Mock<IConsoleOutput>();
-        ServiceCollection.AddSingleton<ICommandLineProcessor, CommandLineProcessor>();
+        Services.AddSingleton<ICommandLineProcessor, CommandLineProcessor>();
     }
 
     [Fact(DisplayName = "001 CLI Processor can read each key input until an enter is found")]

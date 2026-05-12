@@ -1,8 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using Csharp.Common.Builders;
+using Csharp.Common.EntityFramework.Builders;
+using Csharp.Common.EntityFramework.Domain;
+using Csharp.Common.EntityFramework.Domain.Options;
 using Csharp.Common.UnitTesting;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,14 +15,26 @@ namespace Csharp.Common.UnitTests.Common;
 [ExcludeFromCodeCoverage]
 public class BuilderDbContextTests : BaseUnitTest
 {
+    private class DbOptions : IAppDbContextOptions
+    {
+        public ConnectionStringOptions? ConnectionStrings { get; set; }
+        public int NumberOfQueryRetriesBeforeSendingException { get; set; }
+    }
+
+    public interface IMockDbContext : IAppDbContext;
     private readonly ITestOutputHelper _output;
 
     public BuilderDbContextTests(ITestOutputHelper output)
     {
         _output = output;
+        MockOption<IAppDbContextOptions>(new DbOptions());
+        Mock<IMockDbContext>(m =>
+        {
+            m.Setup(x => x.SaveChanges()).Returns(1);
+        });
     }
 
-    private MockedDbContext DbContext => new MockedDbContext();
+    private IMockDbContext DbContext => GetNewServiceProvider.GetRequiredService<IMockDbContext>();
 
     [Fact(DisplayName = "001 Build Db Context can build a dto without hitting the database")]
     public void T001()
@@ -41,7 +57,7 @@ public class BuilderDbContextTests : BaseUnitTest
     [Fact(DisplayName = "003 When injecting the service scope, calling save changes will indeed return the build object")]
     public void T003()
     {
-        ServiceCollection.AddSingleton<MockedDbContext>();
+        Services.AddSingleton<MockedDbContext>();
         var sp = GetNewServiceProvider;
         var dto = GenericDtoBuilder.Create(sp.GetRequiredService<IServiceScopeFactory>())
             .With(x => { x.Name = "Hi"; })
@@ -72,27 +88,19 @@ public class BuilderDbContextTests : BaseUnitTest
         public string Name { get; set; } = string.Empty;
     }
 
-    private class MockedDbContext
+    private class MockedDbContext : AppDbContext
     {
-        public void SaveChanges()
+        public MockedDbContext(IOptions<IAppDbContextOptions> options) : base(options)
         {
-            
         }
     }
 
-    private class GenericDtoBuilder : BuilderDbContext<GenericDto, MockedDbContext, GenericDtoBuilder>
+    private class GenericDtoBuilder : BuilderDbContext<GenericDto, IMockDbContext, GenericDtoBuilder>
     {
         public override GenericDtoBuilder WithDefaults()
         {
             With(x => { });
             return this;
-        }
-
-        public override GenericDto BuildAndSave()
-        {
-            var built = (GenericDto) this;
-            DbContext.SaveChanges();
-            return built;
         }
     }
 }

@@ -1,11 +1,8 @@
+using Csharp.Common.Builders;
+using Csharp.Common.EntityFramework.Domain;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Csharp.Common.Builders;
-
-public interface IBuilderServiceScope
-{
-    void RegisterServiceScope(IServiceScopeFactory serviceScopeFactory);
-}
+namespace Csharp.Common.EntityFramework.Builders;
 
 public interface IBuilderDbContext<in TDbContext>
 {
@@ -71,7 +68,7 @@ public interface IBuilderDbContext<in TDbContext>
 public abstract class BuilderDbContext<TModel, TDbContext, TParentBuilder> : 
     BuilderDbConnector<TDbContext, TModel, TParentBuilder>,
     IBuilderDbContext<TDbContext>, IBuilderServiceScope
-    where TDbContext : class 
+    where TDbContext : class, IAppDbContext
     where TModel : class, new()
     where TParentBuilder: BuilderAbstract<TModel, TParentBuilder>, new()
 {
@@ -161,42 +158,15 @@ public abstract class BuilderDbContext<TModel, TDbContext, TParentBuilder> :
     }
 
     /// <summary>
-    /// <para>
-    /// BuildAndSave is an abstract method that must be implemented in your builder by overriding the function.  The
-    /// implementation is important to the context of your application and has not been automated at the time of this
-    /// writing.  When you save an object, you must say how that object is to be saved within the context of EF and
-    /// what DbSet that object belongs to.  Further information is below as well as an example.
-    /// </para>
-    ///
-    /// <para>
-    /// The DbContext holds the DbSets, and those are not available to the builder's abstract layer.  You must define
-    /// how the object is being saved within the context of EF.  The example below is the boiler plate code that
-    /// will work for a basic save.  It should at its bare minimum attach the object to the db context, save the data
-    /// and return the EF object.  Any automapping, any DTO or abstracted object mapping should be done OUTSIDE of the
-    /// builder.  The builder should only care about the object and its attachment to your database context with EF.
-    /// </para>
-    ///
-    /// <para>
-    /// One important note is that you'll find in the code that there is an object `DbContext`.  This is in the abstract
-    /// layer, so you don't need to define it.  When you create a new builder context to save data using the
-    /// <c>Create(_dbContext)</c> approach, the <c>_dbContext</c> object will be assigned to the internal <c>DbContext</c>
-    /// object, so it's all available for you.  You need minimal custom code to get this to work when you bootstrap
-    /// it appropriately.
-    /// </para>
+    /// With a DbContext registered in the builder, automatically save the entity the database upon building
+    /// the model.
     /// </summary>
-    ///
-    /// <example>
-    /// <code>
-    /// // BOILER PLATE CODE TO WORK IN YOUR BUILDER
-    /// protected override YourModel BuildAndSave()
-    /// {
-    ///   var built = Built();
-    ///   DbContext.YourModels.Add(built);
-    ///   DbContext.SaveChanges();
-    ///   return built;
-    /// }
-    /// </code>
-    /// </example>
     /// <returns></returns>
-    public abstract TModel BuildAndSave();
+    public TModel BuildAndSave()
+    {
+        var model = (TModel)this;
+        DbContext.Set<TModel>().Add(model);
+        DbContext.SaveChanges();
+        return model;
+    }
 }

@@ -12,8 +12,8 @@ public class DebugOutputTests : BaseUnitTest
 {
     public DebugOutputTests()
     {
-        ServiceCollection.AddSingleton<HiDebug>();
-        ServiceCollection.AddSingleton<HiDebug2>();
+        Services.AddSingleton<HiDebug>();
+        Services.AddSingleton<HiDebug2>();
     }
 
     [Fact(DisplayName = "001 DebugOutput Console write pipes to the debug output delegate with default preample")]

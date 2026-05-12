@@ -4,6 +4,7 @@ using Csharp.Common.Extensions;
 using MELT;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit.Abstractions;
@@ -100,13 +101,25 @@ public abstract partial class BaseUnitTest
     protected IEnumerable<LogEntry> LogEntries => _loggerFactory.Sink.LogEntries;
     // ServiceCollection CAN NOT be set outside of this abstract class
     // DO NOT REMOVE "private set;" and replace with "set;", this is by design
-    protected IServiceCollection ServiceCollection { get; private set; }
-    protected virtual IServiceProvider GetNewServiceProvider => ServiceCollection.BuildServiceProvider();
+    [Obsolete("Do not use ServiceCollection, instead use Services")]
+    protected IServiceCollection ServiceCollection { get; private set; } = null!;
+
+    protected IServiceCollection Services
+    {
+        // TODO - remove ServiceCollection eventually and transform to { get; private set; }
+        get => ServiceCollection;
+        private set
+        {
+            ServiceCollection = value;
+        }
+    }
+
+    protected virtual IServiceProvider GetNewServiceProvider => Services.BuildServiceProvider();
     
     protected BaseUnitTest()
     {
         _loggerFactory = TestLoggerFactory.Create();
-        ServiceCollection = new ServiceCollection();
+        Services = new ServiceCollection();
     }
 
     /// <summary>
@@ -129,9 +142,9 @@ public abstract partial class BaseUnitTest
     /// <param name="profileAction"></param>
     protected void AddAutoMapper(Action<IMapperConfigurationExpression> profileAction)
     {
-        var mapper = new MapperConfiguration(profileAction);
-        ServiceCollection.AddSingleton(mapper);
-        ServiceCollection.AddSingleton(mapper.CreateMapper());
+        var mapper = new MapperConfiguration(profileAction, NullLoggerFactory.Instance);
+        Services.AddSingleton(mapper);
+        Services.AddSingleton(mapper.CreateMapper());
     }
 
     /// <summary>
@@ -158,7 +171,7 @@ public abstract partial class BaseUnitTest
     protected void AddMeltLogger<T>() where T : class
     {
         var logger = _loggerFactory.CreateLogger<T>();
-        ServiceCollection.RefreshSingleton(logger);
+        Services.RefreshSingleton(logger);
     }
 
     /// <summary>
@@ -170,7 +183,7 @@ public abstract partial class BaseUnitTest
     protected void Mock<T>(Func<Mock<T>, Mock<T>> func) where T : class
     {
         var inst = (Mock<T>?) Activator.CreateInstance(typeof(Mock<T>));
-        ServiceCollection.RefreshSingleton(func(inst!).Object);
+        Services.RefreshSingleton(func(inst!).Object);
     }
 
     /// <summary>
@@ -182,7 +195,7 @@ public abstract partial class BaseUnitTest
     protected void MockTransient<T>(Func<Mock<T>, Mock<T>> func) where T : class
     {
         var inst = (Mock<T>?) Activator.CreateInstance(typeof(Mock<T>));
-        ServiceCollection.RefreshTransient(func(inst!).Object);
+        Services.RefreshTransient(func(inst!).Object);
     }
 
     /// <summary>
@@ -210,7 +223,7 @@ public abstract partial class BaseUnitTest
     {
         var inst = (Mock<T>?) Activator.CreateInstance(typeof(Mock<T>));
         func(inst!);
-        ServiceCollection.RefreshSingleton(inst!.Object);
+        Services.RefreshSingleton(inst!.Object);
     }
 
     /// <summary>
@@ -246,12 +259,12 @@ public abstract partial class BaseUnitTest
     {
         if (alreadyMocked != null!)
         {
-            ServiceCollection.RefreshSingleton(alreadyMocked.Object);
+            Services.RefreshSingleton(alreadyMocked.Object);
         }
         else
         {
             var inst = (Mock<T>?)Activator.CreateInstance(typeof(Mock<T>));
-            ServiceCollection.RefreshSingleton(inst?.Object ?? throw new InvalidOperationException());
+            Services.RefreshSingleton(inst?.Object ?? throw new InvalidOperationException());
         }
     }
 
@@ -259,14 +272,14 @@ public abstract partial class BaseUnitTest
     {
         var inst = (Mock<IOptions<T>>?) Activator.CreateInstance(typeof(Mock<IOptions<T>>));
         inst!.Setup(x => x.Value).Returns(returnValue);
-        ServiceCollection.RefreshSingleton(inst.Object);
+        Services.RefreshSingleton(inst.Object);
     }
 
     protected void MockOption<T>(Action<Mock<IOptions<T>>> func) where T : class
     {
         var inst = (Mock<IOptions<T>>?) Activator.CreateInstance(typeof(Mock<IOptions<T>>));
         func(inst!);
-        ServiceCollection.RefreshSingleton(inst!.Object);
+        Services.RefreshSingleton(inst!.Object);
     }
 
     /// <summary>

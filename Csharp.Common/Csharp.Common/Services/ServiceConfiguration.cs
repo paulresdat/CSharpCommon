@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Csharp.Common.Services;
 
@@ -117,7 +118,7 @@ public abstract class ServiceConfiguration
             {
                 config(cfg);
             }
-        });
+        }, NullLoggerFactory.Instance);
         serviceCollection.AddSingleton(mapper);
         serviceCollection.AddSingleton(mapper.CreateMapper());
     }

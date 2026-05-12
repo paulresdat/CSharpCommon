@@ -19,6 +19,7 @@ public interface IAppDbContext
     int SaveChanges();
     DatabaseFacade Database { get; }
     EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
+    DbSet<TEntity> Set<TEntity>() where TEntity : class;
 }
 
 public interface IAppDbContextTesting

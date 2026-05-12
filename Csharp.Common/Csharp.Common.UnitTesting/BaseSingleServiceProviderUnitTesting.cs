@@ -15,5 +15,5 @@ public abstract class BaseSingleServiceProviderUnitTesting : BaseUnitTest
     protected override IServiceProvider GetNewServiceProvider =>
         throw new InvalidOperationException("A new service provider is not supported");
 
-    protected IServiceProvider ServiceProvider => _serviceProvider ??= ServiceCollection.BuildServiceProvider();
+    protected virtual IServiceProvider ServiceProvider => _serviceProvider ??= Services.BuildServiceProvider();
 }

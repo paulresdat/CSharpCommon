@@ -2,6 +2,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Csharp.Common.Builders;
 
+public interface IBuilderServiceScope
+{
+    void RegisterServiceScope(IServiceScopeFactory serviceScopeFactory);
+}
+
 /// <summary>
 /// TODO - requires documentation and example code
 /// </summary>

@@ -16,8 +16,8 @@ public class ConsoleCommanderTests : BaseUnitTest
     {
         Mock<IConsoleOutput>();
         Mock<ICommandLineProcessor>();
-        ServiceCollection.AddSingleton<IConsoleCommandList, CommandList>();
-        ServiceCollection.AddSingleton<CliCommanderTest>();
+        Services.AddSingleton<IConsoleCommandList, CommandList>();
+        Services.AddSingleton<CliCommanderTest>();
     }
 
     [Fact(DisplayName = "001 When the cli runs, initialize admin commands gets called and the admin splash screen gets called")]

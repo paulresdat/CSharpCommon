@@ -27,6 +27,6 @@ public class EfBaseUnitTest : BaseSingleServiceProviderUnitTesting
             .Returns(inst.Object);
         inst.Setup(x => x.AsQueryable<T>())
             .Returns(data);
-        ServiceCollection.RefreshSingleton(inst.Object);
+        Services.RefreshSingleton(inst.Object);
     }
 }

@@ -1,7 +1,8 @@
-﻿using System.Data.SqlClient;
+﻿
 using AutoMapper;
 using Csharp.Common.EntityFramework.Domain;
 using Csharp.Common.EntityFramework.Domain.Options;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

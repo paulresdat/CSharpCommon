@@ -51,6 +51,8 @@ public static class AppDbContextExtensions
         if (typeName == "SqliteConnection")
         {
             // for now just truncate
+            // TODO - warning here on sql raw, although this shouldn't be an issue, the warning should go away
+            // Analysis - ExecuteSql runs an error if substituted - troubleshoot or suppress warnings
             dbContext.Database.ExecuteSqlRaw($"delete from {tableName}");
             dbContext.Database.ExecuteSqlRaw($"update sqlite_sequence set seq=1 where name = '{tableName}'");
         }

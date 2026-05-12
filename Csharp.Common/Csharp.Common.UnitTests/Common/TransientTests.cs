@@ -14,8 +14,8 @@ public class TransientTests : BaseUnitTest
 {
     public TransientTests(ITestOutputHelper output)
     {
-        ServiceCollection.AddTransient<TransientObject>();
-        ServiceCollection.AddSingleton<ITransientServiceProvider, TransientServiceProvider>();
+        Services.AddTransient<TransientObject>();
+        Services.AddSingleton<ITransientServiceProvider, TransientServiceProvider>();
     }
 
     [Fact(DisplayName = 

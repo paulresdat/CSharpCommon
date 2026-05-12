@@ -1,6 +1,6 @@
-using System.Data.SqlClient;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Csharp.Common.EntityFramework.Domain.Sql.Procedures;

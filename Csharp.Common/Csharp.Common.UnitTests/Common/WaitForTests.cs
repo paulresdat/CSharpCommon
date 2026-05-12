@@ -12,7 +12,7 @@ public class WaitForTests : BaseUnitTest
 {
     public WaitForTests()
     {
-        ServiceCollection.AddTransient<IWait, Wait<WaitResult>>();
+        Services.AddTransient<IWait, Wait<WaitResult>>();
     }
 
     [Fact(DisplayName = "001 When waiting, a result successful return is immediate and the result will return successful true")]
@@ -58,7 +58,7 @@ public class WaitForTests : BaseUnitTest
             return WaitStatus.Continue;
         }, 200);
         result.Success.Should().Be(false);
-        count.Should().BeGreaterOrEqualTo(4);
+        count.Should().BeGreaterThanOrEqualTo(4);
     }
 
     [ExcludeFromCodeCoverage]

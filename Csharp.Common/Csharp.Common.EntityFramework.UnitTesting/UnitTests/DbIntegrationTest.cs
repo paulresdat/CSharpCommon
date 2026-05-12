@@ -10,9 +10,12 @@ using Xunit.Abstractions;
 namespace Csharp.Common.EntityFramework.UnitTesting.UnitTests;
 
 /// <summary>
-/// 
+/// TODO - remove this, use IntegrationTestingFixture instead
+///
+/// It's simpler and requires less reasoning.
 /// </summary>
 /// <typeparam name="TDbContext"></typeparam>
+[Obsolete("USE IntegrationTestingFixture - this relies on an outdated pattern using the singleton approach")]
 public abstract class DbIntegrationTest<TDbContext> : BaseIntegrationTest
     where TDbContext : class, IAppDbContext
 {
@@ -47,6 +50,7 @@ public abstract class DbIntegrationTest<TDbContext> : BaseIntegrationTest
 /// </summary>
 /// <typeparam name="TIDbContext"></typeparam>
 /// <typeparam name="TDbContext"></typeparam>
+[Obsolete("Use IntegrationTestingFixture")]
 public abstract class DbIntegrationTest<TIDbContext, TDbContext> : DbIntegrationTest<TDbContext>
     where TIDbContext : class, IAppDbContext
     where TDbContext : DbContext, TIDbContext
@@ -70,7 +74,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext> : DbIntegration
     
     protected override void MockWithDb<T, T2>(Action<Mock<T>, T2, IServiceProvider> func)
     {
-        ServiceCollection.AddSingleton<TIDbContext, TDbContext>();
+        Services.AddSingleton<TIDbContext, TDbContext>();
         base.MockWithDb(func);
     }
 }
@@ -81,6 +85,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext> : DbIntegration
 /// <typeparam name="TIDbContext"></typeparam>
 /// <typeparam name="TDbContext"></typeparam>
 /// <typeparam name="TConfigurationContext"></typeparam>
+[Obsolete("Use IntegrationTestingFixture instead")]
 public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationContext> 
     : DbIntegrationTest<TIDbContext, TDbContext>, IIntegrationTestConfiguration<TConfigurationContext>
     where TIDbContext : class, IAppDbContext
@@ -101,8 +106,8 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
     
     protected IIntegrationTestConfiguration<TConfigurationContext> SetupConfiguration()
     {
-        ServiceCollection.AddLogging();
-        ServiceCollection.AddOptions();
+        Services.AddLogging();
+        Services.AddOptions();
         // some configurations inject the ConfigurationBuilder
         if (typeof(TConfigurationContext).GetConstructors()[0].GetParameters().Length == 1)
         {
@@ -124,7 +129,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
         where TConfigurationClass : class
     {
         var configurationSection = expr.Invoke(Configuration);
-        ServiceCollection.Configure<TConfigurationClass>(configurationSection);
+        Services.Configure<TConfigurationClass>(configurationSection);
         return this;
     }
     

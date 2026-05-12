@@ -78,10 +78,10 @@ public abstract class BaseIntegrationTest :
     protected virtual void MockWithDb<T, T2>(Action<Mock<T>, T2, IServiceProvider> func) where T : class where T2 : class, IAppDbContext
     {
         // this can be dangerous outside of a transaction
-        var temporaryServiceProvider = ServiceCollection.BuildServiceProvider();
+        var temporaryServiceProvider = Services.BuildServiceProvider();
         var dbContext = temporaryServiceProvider.GetRequiredService<T2>();
         var inst = (Mock<T>?) Activator.CreateInstance(typeof(Mock<T>));
         func(inst!, dbContext, temporaryServiceProvider);
-        ServiceCollection.RefreshSingleton(inst!.Object);
+        Services.RefreshSingleton(inst!.Object);
     }
 }

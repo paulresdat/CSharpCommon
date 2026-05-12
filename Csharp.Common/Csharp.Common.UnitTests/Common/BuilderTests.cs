@@ -1,8 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using Csharp.Common.Builders;
+using Csharp.Common.EntityFramework.Builders;
+using Csharp.Common.EntityFramework.Domain;
 using Csharp.Common.UnitTesting;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -92,7 +97,7 @@ public class BuilderTests : BaseUnitTest
     [Fact(DisplayName = "007 When registering the db context in the service provider, the service scope will fetch it")]
     public void T007()
     {
-        ServiceCollection.AddSingleton<BuilderDbConnectorContextMock>();
+        Services.AddSingleton<BuilderDbConnectorContextMock>();
         var dto = new BuilderConnector();
         dto.ServiceScope(GetNewServiceProvider.GetRequiredService<IServiceScopeFactory>());
         dto.GetDbContext.GetType().Name.Should().Be(nameof(BuilderDbConnectorContextMock));
@@ -101,7 +106,7 @@ public class BuilderTests : BaseUnitTest
     [Fact(DisplayName = "008 Builder factory can fetch a builder of the IBuilder type without a service scope")]
     public void T008()
     {
-        ServiceCollection.AddSingleton<BuilderFactoryOne>();
+        Services.AddSingleton<BuilderFactoryOne>();
 
         var sp = GetNewServiceProvider;
         var bf = sp.GetRequiredService<BuilderFactoryOne>();
@@ -112,7 +117,7 @@ public class BuilderTests : BaseUnitTest
     [Fact(DisplayName = "009 Builder factory can fetch a builder of the IBuilderServiceScope type and the service scope should return it")]
     public void T009()
     {
-        ServiceCollection.AddSingleton<BuilderFactoryOne>();
+        Services.AddSingleton<BuilderFactoryOne>();
 
         var sp = GetNewServiceProvider;
         var bf = sp.GetRequiredService<BuilderFactoryOne>();
@@ -123,8 +128,8 @@ public class BuilderTests : BaseUnitTest
     [Fact(DisplayName = "010 Builder factory can fetch a builder of the IBuilderServiceScope type and the service scope should return it")]
     public void T010()
     {
-        ServiceCollection.AddSingleton<BuilderFactoryOne>();
-        ServiceCollection.AddSingleton<GenericWithRegexBuilder>();
+        Services.AddSingleton<BuilderFactoryOne>();
+        Services.AddSingleton<GenericWithRegexBuilder>();
 
         var sp = GetNewServiceProvider;
         var bf = sp.GetRequiredService<BuilderFactoryOne>();
@@ -136,7 +141,7 @@ public class BuilderTests : BaseUnitTest
     [Fact(DisplayName = "010 Builder factory will throw an exception if the builder is not of the expected interface types")]
     public void T011()
     {
-        ServiceCollection.AddSingleton<BuilderFactoryOne>();
+        Services.AddSingleton<BuilderFactoryOne>();
 
         var sp = GetNewServiceProvider;
         var bf = sp.GetRequiredService<BuilderFactoryOne>();
@@ -150,8 +155,23 @@ public class BuilderTests : BaseUnitTest
         }
     }
 
-    private class BuilderDbConnectorContextMock
+    private class BuilderDbConnectorContextMock : IAppDbContext
     {
+        public int SaveChanges()
+        {
+            throw new NotImplementedException();
+        }
+
+        public DatabaseFacade Database { get; } = null!;
+        public EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public DbSet<TEntity> Set<TEntity>() where TEntity : class
+        {
+            throw new NotImplementedException();
+        }
     }
 
     private class BuilderConnector : BuilderDbConnector<BuilderDbConnectorContextMock, GenericDto, BuilderConnector>

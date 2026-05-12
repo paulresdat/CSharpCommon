@@ -12,6 +12,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.EntityFramewo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.Unsafe", "Csharp.Common.Unsafe\Csharp.Common.Unsafe.csproj", "{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.Db", "Csharp.Common.Db\Csharp.Common.Db.csproj", "{51D88C0F-04D3-440D-A937-E07CCDA69797}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.IntegrationTests", "Csharp.Common.IntegrationTests\Csharp.Common.IntegrationTests.csproj", "{ABCBE224-B7B3-4523-971A-4B5E407B7324}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,13 @@ Global
 		{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51D88C0F-04D3-440D-A937-E07CCDA69797}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51D88C0F-04D3-440D-A937-E07CCDA69797}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51D88C0F-04D3-440D-A937-E07CCDA69797}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51D88C0F-04D3-440D-A937-E07CCDA69797}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABCBE224-B7B3-4523-971A-4B5E407B7324}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABCBE224-B7B3-4523-971A-4B5E407B7324}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABCBE224-B7B3-4523-971A-4B5E407B7324}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABCBE224-B7B3-4523-971A-4B5E407B7324}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
