@@ -1,0 +1,19 @@
+{
+  "rules": [
+    {
+      "selector": ":method[Modifiers~='async']:not([Name$='Async'])",
+      "message": "Async method names should end with Async.",
+      "severity": "warning"
+    },
+    {
+      "selector": "InvocationExpression[Expression='Console.WriteLine']",
+      "message": "Use an injected logger or ConsoleOutput wrapper instead of Console.WriteLine.",
+      "severity": "warning"
+    },
+    {
+      "selector": "FieldDeclaration[Modifiers~='private'][Modifiers~='readonly'] VariableDeclarator:not([Identifier^='_'])",
+      "message": "Private readonly fields should use _camelCase naming.",
+      "severity": "warning"
+    }
+  ]
+}

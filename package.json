@@ -1,0 +1,31 @@
+{
+  "name": "csharp-common",
+  "private": true,
+  "scripts": {
+    "build": "pnpm run build:dotnet",
+    "build:dotnet": "dotnet build Csharp.Common.sln",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run build:dotnet -warnaserror && pnpm run test",
+    "format": "pnpm run format:dotnet && pnpm run format:workspace",
+    "format:check": "pnpm run format:dotnet:check && pnpm run format:workspace:check",
+    "format:dotnet": "dotnet tool run csharpier format .",
+    "format:dotnet:check": "dotnet tool run csharpier check . --use-cache",
+    "format:workspace": "pnpm exec oxfmt",
+    "format:workspace:check": "pnpm exec oxfmt --check",
+    "lint": "pnpm run lint:workspace",
+    "lint:fix": "pnpm run lint:fix:workspace",
+    "lint:fix:workspace": "pnpm exec oxlint --fix",
+    "lint:workspace": "pnpm exec oxlint --deny-warnings",
+    "restore": "pnpm run restore:dotnet && pnpm run restore:dotnet:tool",
+    "restore:dotnet": "dotnet restore Csharp.Common.sln",
+    "restore:dotnet:tool": "dotnet tool restore",
+    "test": "pnpm run test:dotnet",
+    "test:dotnet": "dotnet test Csharp.Common.sln"
+  },
+  "devDependencies": {
+    "dotenv": "^18.0.0",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "wireit": "^0.14.13"
+  },
+  "packageManager": "pnpm@10.22.0"
+}

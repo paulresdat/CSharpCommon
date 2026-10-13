@@ -1,0 +1,8 @@
+packages:
+  - 'src/*'
+  - 'Examples/*'
+minimumReleaseAge: 4320
+neverBuiltDependencies:
+  - core-js
+allowBuilds:
+  core-js: false

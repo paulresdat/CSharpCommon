@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "Selectorlyzer.Analyzers": {
+        "type": "Direct",
+        "requested": "[0.0.5-beta, )",
+        "resolved": "0.0.5-beta",
+        "contentHash": "XApmFSyOWG/SNOmsMCFJMuvDPhCWCzOzuD1yMCyQyZDqIq78JI8nIQq6AvhYfAgY7hbu7yJHpDs/Brif27KdNQ=="
+      }
+    }
+  }
+}

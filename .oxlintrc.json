@@ -1,0 +1,10 @@
+{
+  "plugins": ["import", "typescript", "unicorn", "oxc", "promise", "eslint"],
+  "options": {
+    "typeAware": false
+  },
+  "rules": {
+    "eslint/curly": ["error", "all"],
+    "eslint/no-console": "warn"
+  }
+}

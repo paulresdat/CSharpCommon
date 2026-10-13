@@ -1,20 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common", "Csharp.Common\Csharp.Common.csproj", "{5582AC91-2BDA-433B-9D44-6AC656C89315}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common", "src\Csharp.Common\Csharp.Common\Csharp.Common.csproj", "{5582AC91-2BDA-433B-9D44-6AC656C89315}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.UnitTesting", "Csharp.Common.UnitTesting\Csharp.Common.UnitTesting.csproj", "{81EEC812-CBF3-4A47-93C5-0DDF47F6CA3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.UnitTesting", "src\Csharp.Common\Csharp.Common.UnitTesting\Csharp.Common.UnitTesting.csproj", "{81EEC812-CBF3-4A47-93C5-0DDF47F6CA3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.UnitTests", "Csharp.Common.UnitTests\Csharp.Common.UnitTests.csproj", "{483D9956-1E96-479A-8D61-2F5B62B59EBB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.UnitTests", "src\Csharp.Common\Csharp.Common.UnitTests\Csharp.Common.UnitTests.csproj", "{483D9956-1E96-479A-8D61-2F5B62B59EBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.EntityFramework", "Csharp.Common.EntityFramework\Csharp.Common.EntityFramework.csproj", "{3C24B9A9-32AC-4F74-A619-D7DF40B547DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.EntityFramework", "src\Csharp.Common\Csharp.Common.EntityFramework\Csharp.Common.EntityFramework.csproj", "{3C24B9A9-32AC-4F74-A619-D7DF40B547DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.EntityFramework.UnitTesting", "Csharp.Common.EntityFramework.UnitTesting\Csharp.Common.EntityFramework.UnitTesting.csproj", "{453AED37-0A63-4FB1-9C72-83CCE330F85C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.EntityFramework.UnitTesting", "src\Csharp.Common\Csharp.Common.EntityFramework.UnitTesting\Csharp.Common.EntityFramework.UnitTesting.csproj", "{453AED37-0A63-4FB1-9C72-83CCE330F85C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.Unsafe", "Csharp.Common.Unsafe\Csharp.Common.Unsafe.csproj", "{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.Unsafe", "src\Csharp.Common\Csharp.Common.Unsafe\Csharp.Common.Unsafe.csproj", "{816E2D73-1A75-4C2B-A456-5CA08B5A2C27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.Db", "Csharp.Common.Db\Csharp.Common.Db.csproj", "{51D88C0F-04D3-440D-A937-E07CCDA69797}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.Db", "src\Csharp.Common\Csharp.Common.Db\Csharp.Common.Db.csproj", "{51D88C0F-04D3-440D-A937-E07CCDA69797}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.IntegrationTests", "Csharp.Common.IntegrationTests\Csharp.Common.IntegrationTests.csproj", "{ABCBE224-B7B3-4523-971A-4B5E407B7324}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp.Common.IntegrationTests", "src\Csharp.Common\Csharp.Common.IntegrationTests\Csharp.Common.IntegrationTests.csproj", "{ABCBE224-B7B3-4523-971A-4B5E407B7324}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
