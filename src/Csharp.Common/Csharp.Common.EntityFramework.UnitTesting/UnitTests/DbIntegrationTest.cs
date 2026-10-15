@@ -27,7 +27,7 @@ public abstract class DbIntegrationTest<TDbContext> : BaseIntegrationTest
     {
         if (DbContextIsNull)
         {
-            ServiceCollection.AddSingleton<TDbContext>();
+            Services.AddSingleton<TDbContext>();
             SetDbContext(ServiceProvider.GetRequiredService<TDbContext>());
         }
         base.StartTestTransaction();
@@ -40,13 +40,13 @@ public abstract class DbIntegrationTest<TDbContext> : BaseIntegrationTest
 
     protected override void MockWithDb<T, T2>(Action<Mock<T>, T2, IServiceProvider> func)
     {
-        ServiceCollection.AddSingleton<TDbContext>();
+        Services.AddSingleton<TDbContext>();
         base.MockWithDb(func);
     }
 }
 
 /// <summary>
-/// 
+///
 /// </summary>
 /// <typeparam name="TIDbContext"></typeparam>
 /// <typeparam name="TDbContext"></typeparam>
@@ -57,21 +57,21 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext> : DbIntegration
 {
     protected DbIntegrationTest(ITestOutputHelper output) : base(output)
     {
-        
+
     }
 
     protected new void StartTestTransaction()
     {
         if (DbContextIsNull)
         {
-            ServiceCollection.AddSingleton<TIDbContext, TDbContext>();
+            Services.AddSingleton<TIDbContext, TDbContext>();
             SetDbContext(ServiceProvider.GetRequiredService<TIDbContext>());
         }
         base.StartTestTransaction();
     }
 
     protected new TIDbContext DbContext => GetDbContext<TIDbContext>();
-    
+
     protected override void MockWithDb<T, T2>(Action<Mock<T>, T2, IServiceProvider> func)
     {
         Services.AddSingleton<TIDbContext, TDbContext>();
@@ -80,13 +80,13 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext> : DbIntegration
 }
 
 /// <summary>
-/// 
+///
 /// </summary>
 /// <typeparam name="TIDbContext"></typeparam>
 /// <typeparam name="TDbContext"></typeparam>
 /// <typeparam name="TConfigurationContext"></typeparam>
 [Obsolete("Use IntegrationTestingFixture instead")]
-public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationContext> 
+public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationContext>
     : DbIntegrationTest<TIDbContext, TDbContext>, IIntegrationTestConfiguration<TConfigurationContext>
     where TIDbContext : class, IAppDbContext
     where TDbContext : DbContext, TIDbContext
@@ -94,7 +94,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
 {
     protected DbIntegrationTest(ITestOutputHelper output) : base(output)
     {
-        
+
     }
 
     private TConfigurationContext? _configuration;
@@ -103,7 +103,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
         set => _configuration = value;
         get => _configuration ?? throw new InvalidOperationException();
     }
-    
+
     protected IIntegrationTestConfiguration<TConfigurationContext> SetupConfiguration()
     {
         Services.AddLogging();
@@ -113,18 +113,18 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
         {
             var configuration = new ConfigurationBuilder();
             Configuration =
-                (TConfigurationContext)Activator.CreateInstance(typeof(TConfigurationContext), args: new object[] { configuration })! 
+                (TConfigurationContext)Activator.CreateInstance(typeof(TConfigurationContext), args: new object[] { configuration })!
                 ?? throw new InvalidOperationException();
         }
         else
         {
             Configuration =
-                (TConfigurationContext)Activator.CreateInstance(typeof(TConfigurationContext))! 
+                (TConfigurationContext)Activator.CreateInstance(typeof(TConfigurationContext))!
                 ?? throw new InvalidOperationException();
         }
         return this;
     }
-    
+
     public IIntegrationTestConfiguration<TConfigurationContext> Configure<TConfigurationClass>(Func<TConfigurationContext, IConfigurationSection> expr)
         where TConfigurationClass : class
     {
@@ -132,7 +132,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
         Services.Configure<TConfigurationClass>(configurationSection);
         return this;
     }
-    
+
     public IIntegrationTestConfiguration<TConfigurationContext> MockConfigure<TConfigurationClass>(
         TConfigurationClass optionValue)
         where TConfigurationClass : class
@@ -140,7 +140,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
         MockOption<TConfigurationClass>(x => x.SetupGet(y => y.Value).Returns(optionValue));
         return this;
     }
-    
+
     public IIntegrationTestConfiguration<TConfigurationContext> MockWatcher<TWatcher, TReturnObject>(
         TReturnObject optionValue)
         where TReturnObject : class, new()
@@ -150,7 +150,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
         {
             m.SetupGet(opt => opt.Settings).Returns(optionValue);
         });
-    
+
         return this;
     }
 }

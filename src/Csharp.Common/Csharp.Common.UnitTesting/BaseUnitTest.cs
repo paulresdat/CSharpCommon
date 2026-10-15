@@ -52,7 +52,7 @@ namespace Csharp.Common.UnitTesting;
 /// <example>
 /// Basic service collection example
 /// <code>
-/// 
+///
 /// public MyUnitTestingSuite : BaseUnitTest
 /// {
 ///    public MyUnitTestingSuite(ITestOutputHelper output)
@@ -71,7 +71,7 @@ namespace Csharp.Common.UnitTesting;
 /// </code>
 /// </example>
 ///
-/// 
+///
 /// <example>
 /// Basic mock example.  You can test your mock is returned by fetching the option in the service provider.
 /// The Mock{} shorthand automatically maps your object into your service collection, no more having to write
@@ -87,7 +87,7 @@ namespace Csharp.Common.UnitTesting;
 ///        });
 ///    });
 ///
-/// 
+///
 ///    var sp = GetNewServiceProvider;
 ///    var settings = sp.GetRequiredService{IOptions{MySettings}}();
 ///    Assert.Equal(1, settings.Value.DefaultValue);
@@ -99,23 +99,14 @@ public abstract partial class BaseUnitTest
 {
     private readonly ITestLoggerFactory _loggerFactory;
     protected IEnumerable<LogEntry> LogEntries => _loggerFactory.Sink.LogEntries;
-    // ServiceCollection CAN NOT be set outside of this abstract class
-    // DO NOT REMOVE "private set;" and replace with "set;", this is by design
-    [Obsolete("Do not use ServiceCollection, instead use Services")]
-    protected IServiceCollection ServiceCollection { get; private set; } = null!;
 
     protected IServiceCollection Services
     {
-        // TODO - remove ServiceCollection eventually and transform to { get; private set; }
-        get => ServiceCollection;
-        private set
-        {
-            ServiceCollection = value;
-        }
+        get => field ??= new ServiceCollection();
     }
 
     protected virtual IServiceProvider GetNewServiceProvider => Services.BuildServiceProvider();
-    
+
     protected BaseUnitTest()
     {
         _loggerFactory = TestLoggerFactory.Create();
@@ -126,7 +117,7 @@ public abstract partial class BaseUnitTest
     /// <para>Adding Automapper configuration.  Extremely helpful for setting up profiles with minimal code.</para>
     /// <para>You only need to call this once in your constructor.</para>
     /// </summary>
-    /// 
+    ///
     /// <example>
     /// <code>
     /// public Constructor()

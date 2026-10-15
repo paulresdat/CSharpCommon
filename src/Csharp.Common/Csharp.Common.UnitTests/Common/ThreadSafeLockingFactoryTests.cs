@@ -23,7 +23,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
 
     [Fact(DisplayName = "001 Thread Safe Lock works well on a list"
         , Skip = "Skipping since it is somewhat unpredictable on the build server with aggregate exceptions towards the end")]
-    public async Task T001()
+    public async Task T001Async()
     {
         var sp = GetNewServiceProvider;
         var service = sp.GetRequiredService<ThreadSafeOnLists>();
@@ -59,7 +59,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         });
 
         await Task.WhenAll(task1, task2);
-        
+
         // however the following is expected to run an aggregation error, maybe!??
         // on the build server this actually fails!  I think we can skip this test.
         Assert.Throws<AggregateException>(() =>
@@ -121,7 +121,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
     }
 
     [Fact(DisplayName = "003 Can read from a lock and write to a lock without collisions")]
-    public async Task T003()
+    public async Task T003Async()
     {
         var threadLocker = new ThreadLocker();
 
@@ -249,7 +249,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         var sp = GetNewServiceProvider;
         var locker = sp.GetRequiredService<ThreadLockerLogger>();
 
-        Assert.Throws<CustomException>(() => 
+        Assert.Throws<CustomException>(() =>
             locker.EnterReadLock(() => throw new CustomException()));
 
         LogEntries.Should().NotBeEmpty();
@@ -258,7 +258,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
 
     private class ThreadSafeOnLists
     {
-        private readonly List<SensitiveData> _data = new();
+        private readonly List<SensitiveData> _data = [];
         private readonly IThreadSafeLockingFactory _lockingFactory;
 
         public ThreadSafeOnLists(IThreadSafeLockingFactory lockingFactory)
@@ -323,28 +323,48 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((SensitiveData) obj);
         }
-        
+
         // all objects should be hashed to the same linked list in a dictionary
         // simulating a collision
         public override int GetHashCode()
         {
             return 1;
         }
-        
+
         public bool Equals(SensitiveData? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             // only say the KEY is the same
             return _key == other._key;
         }
     }
-    
+
     /// <summary>
     /// Due to the nature of collisions and how the dictionary object works, it's difficult to test accurately
     /// that the thread safe locking factory does not work well with dictionaries.  But this method is useful for finding
@@ -461,7 +481,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         {
             base.EnterReadWriteLock(action);
         }
-        
+
         public new T EnterReadWriteLock<T>(Func<T> func)
         {
             return base.EnterReadWriteLock(func);
@@ -471,7 +491,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         {
             base.TryEnterReadWriteLock(action, timeSpan);
         }
-        
+
         public new T TryEnterReadWriteLock<T>(Func<T> func, TimeSpan timeSpan)
         {
             return base.TryEnterReadWriteLock(func, timeSpan);
@@ -481,7 +501,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         {
             base.TryEnterReadWriteLock(action, timeout);
         }
-        
+
         public new T TryEnterReadWriteLock<T>(Func<T> func, int timeout)
         {
             return base.TryEnterReadWriteLock(func, timeout);

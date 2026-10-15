@@ -36,10 +36,9 @@ public class ConsoleCommanderTests : BaseUnitTest
                 {
                     addCommand++;
                 });
-            m.SetupGet(x => x.Commands).Returns(new List<string[]>
-            {
-                new[] { "1", "2" },
-            });
+            m.SetupGet(x => x.Commands).Returns([
+                ["1", "2"]
+            ]);
         });
 
         var lines = new List<string>();
@@ -52,7 +51,7 @@ public class ConsoleCommanderTests : BaseUnitTest
         });
 
         Mock<ICommandLineProcessor>(m =>
-            m.Setup(x => x.ReadLine()).Callback(() => 
+            m.Setup(x => x.ReadLine()).Callback(() =>
                 throw new QuitOutOfConsoleCommanderException()));
 
         var sp = GetNewServiceProvider;
@@ -74,10 +73,9 @@ public class ConsoleCommanderTests : BaseUnitTest
                     It.IsAny<Action>(),
                     It.IsAny<string?>()))
                 .Returns(m.Object);
-            m.SetupGet(x => x.Commands).Returns(new List<string[]>
-            {
-                new[] { "1", "2" },
-            });
+            m.SetupGet(x => x.Commands).Returns([
+                ["1", "2"]
+            ]);
         });
 
         var lines = new List<string>();
@@ -119,10 +117,9 @@ public class ConsoleCommanderTests : BaseUnitTest
                     It.IsAny<Action>(),
                     It.IsAny<string?>()))
                 .Returns(m.Object);
-            m.SetupGet(x => x.Commands).Returns(new List<string[]>
-            {
-                new[] { "1", "2" },
-            });
+            m.SetupGet(x => x.Commands).Returns([
+                ["1", "2"]
+            ]);
         });
 
         var lines = new List<string>();
@@ -157,12 +154,12 @@ public class ConsoleCommanderTests : BaseUnitTest
         Skip = "Another weird 'fails on build server but not locally' scenario")]
     public void T004()
     {
-        var lines = new List<string>();
+        //var lines = new List<string>();
         Mock<IConsoleOutput>(m =>
         {
-            m.Setup(x => x.WriteLine(It.IsAny<string>(), null, null)).Callback((string s, ConsoleColor? _, ConsoleColor? _) =>
+            m.Setup(x => x.WriteLine(It.IsAny<string>(), null, null)).Callback((string _, ConsoleColor? _, ConsoleColor? _) =>
             {
-                lines.Add(s);
+                // lines.Add(s);
             });
         });
 
@@ -177,6 +174,7 @@ public class ConsoleCommanderTests : BaseUnitTest
                 }
                 return "test" + c;
             }));
+
         Thread.Sleep(1000);
         var sp = GetNewServiceProvider;
         var cli = sp.GetRequiredService<CliCommanderTest>();
@@ -210,9 +208,9 @@ public class ConsoleCommanderTests : BaseUnitTest
         protected override void InitializeAdminCommands(ICommandListFluency commandList)
         {
             commandList.AddCommand("test1", "Test 1", () => { Test1 = 1; });
-            commandList.AddCommand("test2", "Test 2", (s) => { Test2 = 2; });
+            commandList.AddCommand("test2", "Test 2", (_) => { Test2 = 2; });
             commandList.AddCommand("test3", "Test 3", async () => { await Task.Run(() => { Test3 = 3; }); });
-            commandList.AddCommand("test4", "Test 4", async (s) => { await Task.Run(() => { Test4 = 4; }); });
+            commandList.AddCommand("test4", "Test 4", async (_) => { await Task.Run(() => { Test4 = 4; }); });
         }
 
         protected override void AdminSplashScreen(IConsoleOutput consoleOutput)

@@ -16,7 +16,7 @@ public class CommandListTests : BaseUnitTest
     }
 
     [Fact(DisplayName = "001 Running a simple command indeed runs it")]
-    public async Task T001()
+    public async Task T001Async()
     {
         var sp = GetNewServiceProvider;
         var list = sp.GetRequiredService<IConsoleCommandList>();
@@ -27,7 +27,7 @@ public class CommandListTests : BaseUnitTest
     }
 
     [Fact(DisplayName = "001.1 Running an empty command does nothing")]
-    public async Task T001_1()
+    public async Task T001_1Async()
     {
         var sp = GetNewServiceProvider;
         var list = sp.GetRequiredService<IConsoleCommandList>();
@@ -35,7 +35,7 @@ public class CommandListTests : BaseUnitTest
     }
 
     [Fact(DisplayName = "002 Running a command with passed args and regex indeed runs")]
-    public async Task T002()
+    public async Task T002Async()
     {
         var sp = GetNewServiceProvider;
         var list = sp.GetRequiredService<IConsoleCommandList>();
@@ -49,7 +49,7 @@ public class CommandListTests : BaseUnitTest
     }
 
     [Fact(DisplayName = "003 Running a simple async command with passed args and regex indeed runs")]
-    public async Task T003()
+    public async Task T003Async()
     {
         var sp = GetNewServiceProvider;
         var list = sp.GetRequiredService<IConsoleCommandList>();
@@ -66,7 +66,7 @@ public class CommandListTests : BaseUnitTest
     }
 
     [Fact(DisplayName = "004 Running an async command with passed args and regex indeed runs")]
-    public async Task T004()
+    public async Task T004Async()
     {
         var sp = GetNewServiceProvider;
         var list = sp.GetRequiredService<IConsoleCommandList>();
@@ -80,7 +80,7 @@ public class CommandListTests : BaseUnitTest
     }
 
     [Fact(DisplayName = "005 When an invalid command is found, a command list exception is thrown")]
-    public async Task T005()
+    public async Task T005Async()
     {
         var sp = GetNewServiceProvider;
         var list = sp.GetRequiredService<IConsoleCommandList>();

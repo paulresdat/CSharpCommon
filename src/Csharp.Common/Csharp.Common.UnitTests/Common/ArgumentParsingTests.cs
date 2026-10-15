@@ -13,38 +13,54 @@ public class ArgumentParsingTests : BaseUnitTest
     {
     }
 
-    // Old way is removed, no longer required, breaking change
-    // [Fact(DisplayName = "001 When providing a boolean style argument, it indeed sets the appropirate value")]
-    // public void T001()
-    // {
-    //     var t = new TestArgs();
-    //     t.Test.Should().BeFalse();
-    //     t.ParseArguments(new[] {"--test"});
-    //     t.Test.Should().BeTrue();
-    // }
-    //
-    // [Fact(DisplayName = "002 The help screen is a default value you can set")]
-    // public void T002()
-    // {
-    //     var t = new TestArgs();
-    //     t.Help.Should().BeFalse();
-    //     t.ParseArguments(new[] {"--help"});
-    //     t.Help.Should().BeTrue();
-    //
-    //     t = new TestArgs();
-    //     t.Help.Should().BeFalse();
-    //     t.ParseArguments(new[] {"-h"});
-    //     t.Help.Should().BeTrue();
-    // }
-    //
-    // [Fact(DisplayName = "003 Invalid arguments throw an option exception that is caught and reported")]
-    // public void T003()
-    // {
-    //     var t = new TestArgs();
-    //     Assert.Throws<ArgumentNullException>(() => t.ParseArguments(new string?[] {null}!));
-    // }
+    [Theory(DisplayName = "001 Boolean options support each declared alias")]
+    [InlineData("-t")]
+    [InlineData("--test")]
+    public void T001(string argument)
+    {
+        var t = new TestArgsWithProps();
 
-    [Theory(DisplayName = "004 All argument types are possible including custom params and custom callbacks")]
+        t.ParseArguments(new[] { argument });
+
+        t.Args.Test.Should().BeTrue();
+    }
+
+    [Theory(DisplayName = "002 Help supports both declared aliases")]
+    [InlineData("-h")]
+    [InlineData("--help")]
+    public void T002(string argument)
+    {
+        var t = new TestArgsWithProps();
+
+        t.ParseArguments(new[] { argument });
+
+        t.Args.Help.Should().BeTrue();
+        t.AskedForHelp.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "003 Unknown arguments are reported without throwing")]
+    public void T003()
+    {
+        var t = new TestArgsWithProps();
+
+        var action = () => t.ParseArguments(new[] { "--unknown" });
+
+        action.Should().NotThrow();
+        t.Args.Test.Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "004 Missing values are reported without throwing")]
+    public void T004()
+    {
+        var t = new TestArgsWithProps();
+
+        var action = () => t.ParseArguments(new[] { "--test-int" });
+
+        action.Should().NotThrow();
+        t.Args.TestInt.Should().Be(0);
+    }
+
+    [Theory(DisplayName = "005 All argument types are possible including custom params and custom callbacks")]
     [InlineData("-t", null, "Test", typeof(bool), false)]
     [InlineData("--test", null, "Test", typeof(bool), false)]
     [InlineData("--test-str", "123", "TestStr", typeof(string), false)]
@@ -55,7 +71,7 @@ public class ArgumentParsingTests : BaseUnitTest
     [InlineData("--test-type", "whatever", "TestNewType", typeof(Nullable), true)]
     [InlineData("--test-another-type", "whatever", "TestAnotherNewType", typeof(Nullable), true)]
     // [InlineData("--test-without-any-description", "1234", "TestWithoutAnyDescription", typeof(int), false)]
-    public void T004(string arg, string? value, string propName, Type type, bool customCallback)
+    public void T005(string arg, string? value, string propName, Type type, bool customCallback)
     {
         var t = new TestArgsWithProps();
         var args = new string[value == null ? 1 : 2];
@@ -75,7 +91,7 @@ public class ArgumentParsingTests : BaseUnitTest
             {
                 // do nothing for now
                 t.Args.TestAnotherNewType.PropOne.Should().Be(1);
-                t.Args.TestAnotherNewType.PropTwo.Should().Be(2);
+                t.Args.TestAnotherNewType.PropTwo.Should().Be(8);
                 return;
             }
             // do nothing for now
@@ -180,7 +196,7 @@ public class ArgumentParsingTests : BaseUnitTest
                 var n = new NewType
                 {
                     PropOne = 1,
-                    PropTwo = 2,
+                    PropTwo = s.Length,
                 };
                 args.TestAnotherNewType = n;
             });
