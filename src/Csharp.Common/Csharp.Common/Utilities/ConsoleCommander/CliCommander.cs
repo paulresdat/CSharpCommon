@@ -15,56 +15,76 @@ namespace Csharp.Common.Utilities.ConsoleCommander;
 /// </example>
 public interface ICli
 {
-    /// <summary>
-    /// Run admin console!  The main entry point, the place where it starts!  When you run this command, admin console
-    /// spins up and waits for commands.  Every command has a prompt, it tells you when the command isn't recognized
-    /// and will run code specified by you for each command registered.  Quitting throws a quit exception which is caught
-    /// and then prints the message out before exiting admin console functionality.
-    /// </summary>
-    void RunCli();
+  /// <summary>
+  /// Run admin console!  The main entry point, the place where it starts!  When you run this command, admin console
+  /// spins up and waits for commands.  Every command has a prompt, it tells you when the command isn't recognized
+  /// and will run code specified by you for each command registered.  Quitting throws a quit exception which is caught
+  /// and then prints the message out before exiting admin console functionality.
+  /// </summary>
+  void RunCli();
 }
 
 public interface ICommandListFluency
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="description"></param>
-    /// <param name="action"></param>
-    /// <param name="regex"></param>
-    /// <returns></returns>
-    ICommandListFluency AddCommand(string command, string description, Action action, string? regex = null);
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="command"></param>
+  /// <param name="description"></param>
+  /// <param name="action"></param>
+  /// <param name="regex"></param>
+  /// <returns></returns>
+  ICommandListFluency AddCommand(
+    string command,
+    string description,
+    Action action,
+    string? regex = null
+  );
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="description"></param>
-    /// <param name="action"></param>
-    /// <param name="regex"></param>
-    /// <returns></returns>
-    ICommandListFluency AddCommand(string command, string description, Action<string> action, string? regex = null);
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="command"></param>
+  /// <param name="description"></param>
+  /// <param name="action"></param>
+  /// <param name="regex"></param>
+  /// <returns></returns>
+  ICommandListFluency AddCommand(
+    string command,
+    string description,
+    Action<string> action,
+    string? regex = null
+  );
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="description"></param>
-    /// <param name="action"></param>
-    /// <param name="regex"></param>
-    /// <returns></returns>
-    ICommandListFluency AddCommand(string command, string description, Func<Task> action, string? regex = null);
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="command"></param>
+  /// <param name="description"></param>
+  /// <param name="action"></param>
+  /// <param name="regex"></param>
+  /// <returns></returns>
+  ICommandListFluency AddCommand(
+    string command,
+    string description,
+    Func<Task> action,
+    string? regex = null
+  );
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="description"></param>
-    /// <param name="action"></param>
-    /// <param name="regex"></param>
-    /// <returns></returns>
-    ICommandListFluency AddCommand(string command, string description, Func<string, Task> action, string? regex = null);
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="command"></param>
+  /// <param name="description"></param>
+  /// <param name="action"></param>
+  /// <param name="regex"></param>
+  /// <returns></returns>
+  ICommandListFluency AddCommand(
+    string command,
+    string description,
+    Func<string, Task> action,
+    string? regex = null
+  );
 }
 
 /// <summary>
@@ -92,14 +112,14 @@ public interface ICommandListFluency
 /// command that can start and stop that monitor when the command is given on the command line.
 /// </para>
 /// </summary>
-/// 
+///
 /// <example>
 /// <code>
 /// public class TestConsole : AdminConsole
 /// {
 ///     public TestConsole(
 ///         IConsoleCommander consoleCommander,
-///         IConsoleCommandList commandList) : 
+///         IConsoleCommandList commandList) :
 ///         base(consoleCommander, commandList)
 ///     {
 ///         // custom command line sigil
@@ -132,172 +152,211 @@ public interface ICommandListFluency
 /// </example>
 public abstract class CliCommander : ICommandListFluency, ICli
 {
-    private readonly ICommandLineProcessor _commandLineProcessor;
-    private readonly IConsoleOutput _consoleOutput;
-    private readonly IConsoleCommandList _commands;
-    protected IConsoleOutput Out => _consoleOutput;
+  private readonly ICommandLineProcessor _commandLineProcessor;
+  private readonly IConsoleOutput _consoleOutput;
+  private readonly IConsoleCommandList _commands;
+  protected IConsoleOutput Out => _consoleOutput;
 
-    protected CliCommander(
-        ICommandLineProcessor commandLineProcessor,
-        IConsoleCommandList commandList,
-        IConsoleOutput consoleOutput)
-    {
-        _commandLineProcessor = commandLineProcessor;
-        _commands = commandList;
-        _consoleOutput = consoleOutput;
-    }
+  protected CliCommander(
+    ICommandLineProcessor commandLineProcessor,
+    IConsoleCommandList commandList,
+    IConsoleOutput consoleOutput
+  )
+  {
+    _commandLineProcessor = commandLineProcessor;
+    _commands = commandList;
+    _consoleOutput = consoleOutput;
+  }
 
-    /// <summary>
-    /// This is where you register your admin console commands.
-    /// </summary>
-    /// <param name="commandList"></param>
-    protected abstract void InitializeAdminCommands(ICommandListFluency commandList);
+  /// <summary>
+  /// This is where you register your admin console commands.
+  /// </summary>
+  /// <param name="commandList"></param>
+  protected abstract void InitializeAdminCommands(ICommandListFluency commandList);
 
-    /// <summary>
-    /// This is the splash screen that is called every time admin console starts.
-    /// </summary>
-    /// <param name="consoleOutput"></param>
-    protected abstract void AdminSplashScreen(IConsoleOutput consoleOutput);
+  /// <summary>
+  /// This is the splash screen that is called every time admin console starts.
+  /// </summary>
+  /// <param name="consoleOutput"></param>
+  protected abstract void AdminSplashScreen(IConsoleOutput consoleOutput);
 
-    /// <summary>
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="description"></param>
-    /// <param name="action"></param>
-    /// <param name="regex"></param>
-    /// <returns></returns>
-    public ICommandListFluency AddCommand(string command, string description, Action action, string? regex = null)
-    {
-        _commands.AddCommand(command, description, action, regex);
-        return this;
-    }
+  /// <summary>
+  /// </summary>
+  /// <param name="command"></param>
+  /// <param name="description"></param>
+  /// <param name="action"></param>
+  /// <param name="regex"></param>
+  /// <returns></returns>
+  public ICommandListFluency AddCommand(
+    string command,
+    string description,
+    Action action,
+    string? regex = null
+  )
+  {
+    _commands.AddCommand(command, description, action, regex);
+    return this;
+  }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="description"></param>
-    /// <param name="action"></param>
-    /// <param name="regex"></param>
-    /// <returns></returns>
-    public ICommandListFluency AddCommand(string command, string description, Action<string> action, string? regex = null)
-    {
-        _commands.AddCommand(command, description, action, regex);
-        return this;
-    }
+  /// <summary>
+  /// </summary>
+  /// <param name="command"></param>
+  /// <param name="description"></param>
+  /// <param name="action"></param>
+  /// <param name="regex"></param>
+  /// <returns></returns>
+  public ICommandListFluency AddCommand(
+    string command,
+    string description,
+    Action<string> action,
+    string? regex = null
+  )
+  {
+    _commands.AddCommand(command, description, action, regex);
+    return this;
+  }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="description"></param>
-    /// <param name="action"></param>
-    /// <param name="regex"></param>
-    /// <returns></returns>
-    public ICommandListFluency AddCommand(string command, string description, Func<Task> action, string? regex = null)
-    {
-        _commands.AddCommand(command, description, action, regex);
-        return this;
-    }
+  /// <summary>
+  /// </summary>
+  /// <param name="command"></param>
+  /// <param name="description"></param>
+  /// <param name="action"></param>
+  /// <param name="regex"></param>
+  /// <returns></returns>
+  public ICommandListFluency AddCommand(
+    string command,
+    string description,
+    Func<Task> action,
+    string? regex = null
+  )
+  {
+    _commands.AddCommand(command, description, action, regex);
+    return this;
+  }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="description"></param>
-    /// <param name="action"></param>
-    /// <param name="regex"></param>
-    /// <returns></returns>
-    public ICommandListFluency AddCommand(string command, string description, Func<string, Task> action, string? regex = null)
-    {
-        _commands.AddCommand(command, description, action, regex);
-        return this;
-    }
+  /// <summary>
+  /// </summary>
+  /// <param name="command"></param>
+  /// <param name="description"></param>
+  /// <param name="action"></param>
+  /// <param name="regex"></param>
+  /// <returns></returns>
+  public ICommandListFluency AddCommand(
+    string command,
+    string description,
+    Func<string, Task> action,
+    string? regex = null
+  )
+  {
+    _commands.AddCommand(command, description, action, regex);
+    return this;
+  }
 
-    public void RunCli()
-    {
-        InitializeAdminCommands(this);
-        AddCommand("?", "Show Menu", PrintMenu);
-        AdminSplashScreen(_consoleOutput);
-        PrintMenu();
-        ReadFromInput();
-    }
-    
-    protected void AskForYesOrNo(string line, Action onYes, Action? onNo = null, string defaultValue = "n")
-    {
-        AskForInput(line + " [Y/n] ", s =>
+  public void RunCli()
+  {
+    Task.WhenAll(RunCliAsync());
+  }
+
+  public async Task RunCliAsync()
+  {
+    InitializeAdminCommands(this);
+    AddCommand("?", "Show Menu", PrintMenu);
+    AdminSplashScreen(_consoleOutput);
+    PrintMenu();
+    await ReadFromInputAsync();
+  }
+
+  protected void AskForYesOrNo(
+    string line,
+    Action onYes,
+    Action? onNo = null,
+    string defaultValue = "n"
+  )
+  {
+    AskForInput(
+      line + " [Y/n] ",
+      s =>
+      {
+        if (string.IsNullOrWhiteSpace(s))
         {
-            if (string.IsNullOrWhiteSpace(s))
-            {
-                s = defaultValue;
-            }
-
-            if (s == "Y" || s == "n")
-            {
-                switch (s)
-                {
-                    case "Y": onYes();
-                        break;
-                    case "n": onNo?.Invoke();
-                        break;
-                }
-                return true;
-            }
-
-            return false;
-        });
-    }
-
-    protected void AskForInput(string line, Func<string, bool> action)
-    {
-        bool loop;
-        do
-        {
-            _consoleOutput.Write(line);
-            var newLine = _consoleOutput.ReadLine()?.Trim() ?? "";
-            loop = !action(newLine);
-        } while (loop);
-    }
-
-    private void PrintMenu()
-    {
-        var table = new Table();
-        table.AddColumns("[yellow]Command[/]", "[yellow]Description[/]");
-        foreach (var command in _commands.Commands)
-        {
-            table.AddRow("[green]" + command[0] + "[/]", command[1]);
+          s = defaultValue;
         }
 
-        table.Border(TableBorder.Rounded);
-        AnsiConsole.Write(table);
+        if (s == "Y" || s == "n")
+        {
+          switch (s)
+          {
+            case "Y":
+              onYes();
+              break;
+            case "n":
+              onNo?.Invoke();
+              break;
+          }
+          return true;
+        }
+
+        return false;
+      }
+    );
+  }
+
+  protected void AskForInput(string line, Func<string, bool> action)
+  {
+    bool loop;
+    do
+    {
+      _consoleOutput.Write(line);
+      var newLine = _consoleOutput.ReadLine()?.Trim() ?? "";
+      loop = !action(newLine);
+    } while (loop);
+  }
+
+  private void PrintMenu()
+  {
+    var table = new Table();
+    table.AddColumns("[yellow]Command[/]", "[yellow]Description[/]");
+    foreach (var command in _commands.Commands)
+    {
+      table.AddRow("[green]" + command[0] + "[/]", command[1]);
     }
 
-    private async void ReadFromInput(Action<IConsoleCommandList>? onQuit = null)
+    table.Border(TableBorder.Rounded);
+    AnsiConsole.Write(table);
+  }
+
+  private async Task ReadFromInputAsync(Action<IConsoleCommandList>? onQuit = null)
+  {
+    var quit = false;
+    while (!quit)
     {
-        var quit = false;
-        while (!quit)
-        {
-            try
-            {
-                var data = _commandLineProcessor.ReadLine();
-                await _commands.RunCommandAsync(data.Trim());
-            }
-            catch (CommandListException e)
-            {
-                _consoleOutput.WriteLine(e.Message);
-            }
-            catch (QuitOutOfConsoleCommanderException e)
-            {
-                // do stuff!
-                _consoleOutput.WriteLine(
-                    !e.CustomMessageSet
-                        ? "Quitting, shutting stuff down.  If this doesn't automatically stop, there is an issue"
-                        : e.Message);
-                quit = true;
-                onQuit?.Invoke(_commands);
-            }
-            catch (Exception e)
-            {
-                _consoleOutput.WriteLine("A general exception was thrown when running the previous command: " + e.Message);
-                _consoleOutput.WriteLine(e.StackTrace ?? string.Empty);
-            }
-        }
+      try
+      {
+        var data = _commandLineProcessor.ReadLine();
+        await _commands.RunCommandAsync(data.Trim());
+      }
+      catch (CommandListException e)
+      {
+        _consoleOutput.WriteLine(e.Message);
+      }
+      catch (QuitOutOfConsoleCommanderException e)
+      {
+        // do stuff!
+        _consoleOutput.WriteLine(
+          !e.CustomMessageSet
+            ? "Quitting, shutting stuff down.  If this doesn't automatically stop, there is an issue"
+            : e.Message
+        );
+        quit = true;
+        onQuit?.Invoke(_commands);
+      }
+      catch (Exception e)
+      {
+        _consoleOutput.WriteLine(
+          "A general exception was thrown when running the previous command: " + e.Message
+        );
+        _consoleOutput.WriteLine(e.StackTrace ?? string.Empty);
+      }
     }
+  }
 }

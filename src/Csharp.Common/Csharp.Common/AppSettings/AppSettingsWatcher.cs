@@ -22,18 +22,18 @@ namespace Csharp.Common.AppSettings;
 /// constructor.
 /// </para>
 /// </summary>
-/// 
+///
 /// <example>
 /// Full Example:
 /// <code>
 /// class MySettings
 /// {
-///    public int MySetting { get; set; } 
+///    public int MySetting { get; set; }
 /// }
-/// 
+///
 /// ... // configuring service
 /// services.Configure{MySettings}(config.MySettings);
-/// 
+///
 /// ... // creating watcher
 /// public class MySettingsWatcher : AppSettingsWatcher{MySettings}
 /// {
@@ -48,23 +48,24 @@ namespace Csharp.Common.AppSettings;
 /// </code>
 /// </example>
 /// <typeparam name="T">concrete type associated to the app settings configuration file</typeparam>
-public abstract class AppSettingsWatcher<T> : IAppSettingsWatcher<T> where T : class, new()
+public abstract class AppSettingsWatcher<T> : IAppSettingsWatcher<T>
+  where T : class, new()
 {
-    public virtual event Action<T>? OnChange;
+  public virtual event Action<T>? OnChange;
 
-    protected T AppSettings;
+  protected T AppSettings;
 
-    protected AppSettingsWatcher(IOptionsMonitor<T> settings)
-    {
-        AppSettings = settings.CurrentValue;
-        settings.OnChange(Listener);
-    }
+  protected AppSettingsWatcher(IOptionsMonitor<T> settings)
+  {
+    AppSettings = settings.CurrentValue;
+    settings.OnChange(Listener);
+  }
 
-    private void Listener(T settings)
-    {
-        AppSettings = settings;
-        OnChange?.Invoke(settings);
-    }
+  private void Listener(T settings)
+  {
+    AppSettings = settings;
+    OnChange?.Invoke(settings);
+  }
 
-    public virtual T Settings => AppSettings;
+  public virtual T Settings => AppSettings;
 }

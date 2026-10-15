@@ -4,8 +4,8 @@ namespace Csharp.Common.UnitTesting.Data;
 
 public interface IEnumeratorFileLoader
 {
-    IEnumeratorFileLoader ReadFromFile(params string[] fullFileName);
-    IEnumerator<object[]> ForeachLineInFile(Func<string, List<object>> runThisAction);
+  IEnumeratorFileLoader ReadFromFile(params string[] fullFileName);
+  IEnumerator<object[]> ForeachLineInFile(Func<string, List<object>> runThisAction);
 }
 
 /// <summary>
@@ -24,63 +24,66 @@ public interface IEnumeratorFileLoader
 /// </summary>
 public abstract class EnumeratorDataLoader : IEnumeratorFileLoader, IEnumerable<object[]>
 {
-    public abstract IEnumerator<object[]> GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator()
+  public abstract IEnumerator<object[]> GetEnumerator();
+
+  IEnumerator IEnumerable.GetEnumerator()
+  {
+    return GetEnumerator();
+  }
+
+  private List<string> _fileContent = [];
+
+  public IEnumeratorFileLoader ReadFromFile(params string[] fullFileName)
+  {
+    _fileContent.Clear();
+    _fileContent.AddRange(File.ReadAllLines(Path.Join(fullFileName)));
+    return this;
+  }
+
+  public IEnumerator<object[]> ForeachLineInFile(Func<string, List<object>> runThisAction)
+  {
+    foreach (var line in _fileContent)
     {
-        return GetEnumerator();
+      yield return runThisAction(line).ToArray();
+    }
+  }
+
+  protected T ToEnum<T>(string enumType)
+  {
+    if (Enum.TryParse(typeof(T), enumType, true, out var enumResult))
+    {
+      return (T)enumResult;
     }
 
-    private List<string> _fileContent = new();
-    public IEnumeratorFileLoader ReadFromFile(params string[] fullFileName)
+    throw new InvalidOperationException(
+      "Invalid enum type found for called type: '" + typeof(T).Name + "', value: '" + enumType + "'"
+    );
+  }
+
+  protected T? ToNullableEnum<T>(string enumType)
+  {
+    if (Enum.TryParse(typeof(T), enumType, true, out var enumResult))
     {
-        _fileContent.Clear();
-        _fileContent.AddRange(File.ReadAllLines(Path.Join(fullFileName)));
-        return this;
+      return (T)enumResult;
     }
 
-    public IEnumerator<object[]> ForeachLineInFile(Func<string, List<object>> runThisAction)
-    {
-        foreach (var line in _fileContent)
-        {
-            yield return runThisAction(line).ToArray();
-        }
-    }
+    return default;
+  }
 
-    protected T ToEnum<T>(string enumType)
-    {
-        if (Enum.TryParse(typeof(T), enumType, true, out var enumResult))
-        {
-            return (T)enumResult;
-        }
+  protected bool TrueFalse(string data)
+  {
+    return data == "true";
+  }
 
-        throw new InvalidOperationException(
-            "Invalid enum type found for called type: '" + typeof(T).Name + "', value: '" + enumType + "'");
-    }
+  protected int ToInt(string data)
+  {
+    int.TryParse(data, out var intData);
+    return intData;
+  }
 
-    protected T? ToNullableEnum<T>(string enumType)
-    {
-        if (Enum.TryParse(typeof(T), enumType, true, out var enumResult))
-        {
-            return (T)enumResult;
-        }
-
-        return default;
-    }
-
-    protected bool TrueFalse(string data)
-    {
-        return data == "true";
-    }
-
-    protected int ToInt(string data)
-    {
-        int.TryParse(data, out var intData);
-        return intData;
-    }
-
-    protected long ToLong(string data)
-    {
-        long.TryParse(data, out var longData);
-        return longData;
-    }
+  protected long ToLong(string data)
+  {
+    long.TryParse(data, out var longData);
+    return longData;
+  }
 }

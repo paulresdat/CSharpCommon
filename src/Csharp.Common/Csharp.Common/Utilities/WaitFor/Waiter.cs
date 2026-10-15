@@ -14,115 +14,122 @@ namespace Csharp.Common.Utilities.WaitFor;
 /// </summary>
 public interface IWait : ITransientService
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="seconds"></param>
-    /// <param name="action"></param>
-    /// <param name="iterationWaitInMilliseconds"></param>
-    /// <param name="timeoutStatusReason"></param>
-    /// <returns></returns>
-    IWaitResult For(
-        int seconds,
-        Func<WaitStatusResult>? action = null,
-        int iterationWaitInMilliseconds = 1000,
-        string timeoutStatusReason = "Action reason did not return a status of success within allotted time");
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="seconds"></param>
+  /// <param name="action"></param>
+  /// <param name="iterationWaitInMilliseconds"></param>
+  /// <param name="timeoutStatusReason"></param>
+  /// <returns></returns>
+  IWaitResult For(
+    int seconds,
+    Func<WaitStatusResult>? action = null,
+    int iterationWaitInMilliseconds = 1000,
+    string timeoutStatusReason =
+      "Action reason did not return a status of success within allotted time"
+  );
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="seconds"></param>
-    /// <param name="action"></param>
-    /// <param name="iterationWaitInMilliseconds"></param>
-    /// <param name="timeoutStatusReason"></param>
-    /// <returns></returns>
-    IWaitResult For(
-        int seconds,
-        Func<WaitStatus>? action = null,
-        int iterationWaitInMilliseconds = 1000,
-        string timeoutStatusReason = "Action reason did not return a status of success within allotted time");
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="seconds"></param>
+  /// <param name="action"></param>
+  /// <param name="iterationWaitInMilliseconds"></param>
+  /// <param name="timeoutStatusReason"></param>
+  /// <returns></returns>
+  IWaitResult For(
+    int seconds,
+    Func<WaitStatus>? action = null,
+    int iterationWaitInMilliseconds = 1000,
+    string timeoutStatusReason =
+      "Action reason did not return a status of success within allotted time"
+  );
 }
 
 /// <summary>
-/// 
+///
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class Wait<T> : IWait where T: class, IWaitResult, new()
+public class Wait<T> : IWait
+  where T : class, IWaitResult, new()
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="seconds"></param>
-    /// <param name="action"></param>
-    /// <param name="iterationWaitInMilliseconds"></param>
-    /// <param name="timeoutStatusReason"></param>
-    /// <returns></returns>
-    public IWaitResult For(
-        int seconds,
-        Func<WaitStatus>? action = null,
-        int iterationWaitInMilliseconds = 1000,
-        string timeoutStatusReason = "Action reason did not return a status of success within allotted time")
-    {
-        return For(
-            seconds: seconds,
-            iterationWaitInMilliseconds: iterationWaitInMilliseconds,
-            timeoutStatusReason: timeoutStatusReason,
-            action: () =>
-            {
-                var result = action?.Invoke();
-                return new WaitStatusResult
-                {
-                    WaitStatus = result ?? WaitStatus.Error,
-                    Reason = result is null ? "(result returned null)" : null,
-                };
-            });
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="seconds"></param>
-    /// <param name="action"></param>
-    /// <param name="iterationWaitInMilliseconds"></param>
-    /// <param name="timeoutStatusReason"></param>
-    /// <returns></returns>
-    public IWaitResult For(
-        int seconds,
-        Func<WaitStatusResult>? action = null,
-        int iterationWaitInMilliseconds = 1000,
-        string timeoutStatusReason = "Action reason did not return a status of success within allotted time")
-    {
-        var shouldContinue = true;
-        var timer = new Stopwatch();
-        timer.Start();
-        while (shouldContinue)
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="seconds"></param>
+  /// <param name="action"></param>
+  /// <param name="iterationWaitInMilliseconds"></param>
+  /// <param name="timeoutStatusReason"></param>
+  /// <returns></returns>
+  public IWaitResult For(
+    int seconds,
+    Func<WaitStatus>? action = null,
+    int iterationWaitInMilliseconds = 1000,
+    string timeoutStatusReason =
+      "Action reason did not return a status of success within allotted time"
+  )
+  {
+    return For(
+      seconds: seconds,
+      iterationWaitInMilliseconds: iterationWaitInMilliseconds,
+      timeoutStatusReason: timeoutStatusReason,
+      action: () =>
+      {
+        var result = action?.Invoke();
+        return new WaitStatusResult
         {
-            if (action is not null)
-            {
-                var result = action();
-                if (result.WaitStatus != WaitStatus.Continue)
-                {
-                    return GetResultInstance(result);
-                }
-            }
+          WaitStatus = result ?? WaitStatus.Error,
+          Reason = result is null ? "(result returned null)" : null,
+        };
+      }
+    );
+  }
 
-            shouldContinue = timer.Elapsed.TotalSeconds <= seconds;
-            Thread.Sleep(iterationWaitInMilliseconds);
-        }
-        timer.Stop();
-
-        return GetResultInstance(new() {
-            WaitStatus = WaitStatus.Error,
-            Reason = timeoutStatusReason,
-        });
-    }
-
-    protected virtual IWaitResult GetResultInstance(WaitStatusResult result)
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="seconds"></param>
+  /// <param name="action"></param>
+  /// <param name="iterationWaitInMilliseconds"></param>
+  /// <param name="timeoutStatusReason"></param>
+  /// <returns></returns>
+  public IWaitResult For(
+    int seconds,
+    Func<WaitStatusResult>? action = null,
+    int iterationWaitInMilliseconds = 1000,
+    string timeoutStatusReason =
+      "Action reason did not return a status of success within allotted time"
+  )
+  {
+    var shouldContinue = true;
+    var timer = new Stopwatch();
+    timer.Start();
+    while (shouldContinue)
     {
-        var returnResult = Activator.CreateInstance<T>();
-        returnResult.WaitStatus = result.WaitStatus;
-        returnResult.Success = result.WaitStatus == WaitStatus.Success;
-        returnResult.Reason = result.Reason ?? "(no reason specified)";
-        return returnResult;
+      if (action is not null)
+      {
+        var result = action();
+        if (result.WaitStatus != WaitStatus.Continue)
+        {
+          return GetResultInstance(result);
+        }
+      }
+
+      shouldContinue = timer.Elapsed.TotalSeconds <= seconds;
+      Thread.Sleep(iterationWaitInMilliseconds);
     }
+    timer.Stop();
+
+    return GetResultInstance(new() { WaitStatus = WaitStatus.Error, Reason = timeoutStatusReason });
+  }
+
+  protected virtual IWaitResult GetResultInstance(WaitStatusResult result)
+  {
+    var returnResult = Activator.CreateInstance<T>();
+    returnResult.WaitStatus = result.WaitStatus;
+    returnResult.Success = result.WaitStatus == WaitStatus.Success;
+    returnResult.Reason = result.Reason ?? "(no reason specified)";
+    return returnResult;
+  }
 }

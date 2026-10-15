@@ -97,202 +97,211 @@ namespace Csharp.Common.UnitTesting;
 /// </summary>
 public abstract partial class BaseUnitTest
 {
-    private readonly ITestLoggerFactory _loggerFactory;
-    protected IEnumerable<LogEntry> LogEntries => _loggerFactory.Sink.LogEntries;
+  private readonly ITestLoggerFactory _loggerFactory;
+  protected IEnumerable<LogEntry> LogEntries => _loggerFactory.Sink.LogEntries;
 
-    protected IServiceCollection Services
+  protected IServiceCollection Services
+  {
+    get => field ??= new ServiceCollection();
+  }
+
+  protected virtual IServiceProvider GetNewServiceProvider => Services.BuildServiceProvider();
+
+  protected BaseUnitTest()
+  {
+    _loggerFactory = TestLoggerFactory.Create();
+    Services = new ServiceCollection();
+  }
+
+  /// <summary>
+  /// <para>Adding Automapper configuration.  Extremely helpful for setting up profiles with minimal code.</para>
+  /// <para>You only need to call this once in your constructor.</para>
+  /// </summary>
+  ///
+  /// <example>
+  /// <code>
+  /// public Constructor()
+  /// {
+  ///    AddAutoMapper(cfg => {
+  ///      cfg.AddProfile{ProfileOne}();
+  ///      cfg.AddProfile{ProfileTwo}();
+  ///      ... etc ...
+  ///    });
+  /// }
+  /// </code>
+  /// </example>
+  /// <param name="profileAction"></param>
+  protected void AddAutoMapper(Action<IMapperConfigurationExpression> profileAction)
+  {
+    var mapper = new MapperConfiguration(profileAction, NullLoggerFactory.Instance);
+    Services.AddSingleton(mapper);
+    Services.AddSingleton(mapper.CreateMapper());
+  }
+
+  /// <summary>
+  /// <para>This is an extremely helpful function for registering melt loggers to inspect logging in your tests.</para>
+  /// <para>You can look through your logs using the protected property <see cref="LogEntries">LogEntries</see>.
+  /// Note as well that you can inspect the LogEntries and what logs were created in debug mode within your test.</para>
+  /// <para>By creating specific logs, you can concentrate only on the logs of the class you wish to test, making logs
+  /// far more easy to read in inspection, and more performant when running tests on them (less data to sift through
+  /// if your app is log heavy)</para>
+  /// </summary>
+  ///
+  /// <example>
+  /// <code>
+  /// public Constructor()
+  /// {
+  ///    // this essentially wraps the `ILogger{MyClass}` injection
+  ///    // in the service collection.  Whenever `ILogger{MyClass}`
+  ///    // is asked for, it will return the melt logger's wrapper.
+  ///    AddMeltLogger{MyClass}();
+  /// }
+  /// </code>
+  /// </example>
+  /// <typeparam name="T">The concrete class of the logger, leave out ILogger</typeparam>
+  protected void AddMeltLogger<T>()
+    where T : class
+  {
+    var logger = _loggerFactory.CreateLogger<T>();
+    Services.RefreshSingleton(logger);
+  }
+
+  /// <summary>
+  /// Mocks a singleton of the object using a function that returns the object itself.
+  /// </summary>
+  /// <param name="func"></param>
+  /// <typeparam name="T"></typeparam>
+  [Obsolete("We don't need a returned object anymore")]
+  protected void Mock<T>(Func<Mock<T>, Mock<T>> func)
+    where T : class
+  {
+    var inst = (Mock<T>?)Activator.CreateInstance(typeof(Mock<T>));
+    Services.RefreshSingleton(func(inst!).Object);
+  }
+
+  /// <summary>
+  /// Mocks a transient by using a function that expects a returned object.
+  /// </summary>
+  /// <param name="func"></param>
+  /// <typeparam name="T"></typeparam>
+  [Obsolete("We don't need a returned object anymore")]
+  protected void MockTransient<T>(Func<Mock<T>, Mock<T>> func)
+    where T : class
+  {
+    var inst = (Mock<T>?)Activator.CreateInstance(typeof(Mock<T>));
+    Services.RefreshTransient(func(inst!).Object);
+  }
+
+  /// <summary>
+  /// <para>The most used aspect of the mock methods: Mocking and providing the mock functionality in one scoped call.</para>
+  /// <para>
+  /// The beauty of this wrapper allows us to take away the boilerplate code that registers the mocked object
+  /// into the service collection.  It reduces the clutter in your code and all you see written is the actual mock
+  /// which means your code is more readable as a consequence.  Unit tests are clean with this approach.
+  /// </para>
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// public Constructor()
+  /// {
+  ///   Mock{MyObject}(mockedObject => {
+  ///     mockedObject.Setup(x => x.Action(It.IsAny{Interface}))
+  ///       .Returns(true);
+  ///   });
+  /// }
+  /// </code>
+  /// </example>
+  /// <param name="func">Action on the mock that needs to performed</param>
+  /// <typeparam name="T">The concrete to mock</typeparam>
+  protected void Mock<T>(Action<Mock<T>> func)
+    where T : class
+  {
+    var inst = (Mock<T>?)Activator.CreateInstance(typeof(Mock<T>));
+    func(inst!);
+    Services.RefreshSingleton(inst!.Object);
+  }
+
+  /// <summary>
+  /// This follows a shorthand way to provide a mock without necessary boiler plate code around
+  /// instantiating a new mock object.  It falls in line with design since it's a protected method
+  /// in the base layout, increasing uniform readability in the unit tests.
+  /// </summary>
+  /// <param name="func"></param>
+  /// <typeparam name="T"></typeparam>
+  /// <returns></returns>
+  protected Mock<T> MockOf<T>(Action<Mock<T>>? func = null)
+    where T : class
+  {
+    var inst = (Mock<T>?)Activator.CreateInstance(typeof(Mock<T>));
+    if (func is not null)
     {
-        get => field ??= new ServiceCollection();
+      func(inst!);
     }
+    return inst!;
+  }
 
-    protected virtual IServiceProvider GetNewServiceProvider => Services.BuildServiceProvider();
-
-    protected BaseUnitTest()
+  /// <summary>
+  /// This is the shorthand version of either mocking an empty object and registering it, or
+  /// providing an already mocked object to register to the service collection.  The latter is
+  /// less used, except for very specific use case scenarios that come up only within context
+  /// of the test.  Otherwise, you'll use this just to mock something that you don't want
+  /// to have functionality attributed to, like an interface to keep a test from being an
+  /// integration test.
+  /// </summary>
+  /// <param name="alreadyMocked">A possible mocked object, can be null or empty (most use cases)</param>
+  /// <typeparam name="T">The object type to mock</typeparam>
+  /// <exception cref="InvalidOperationException">If the object cannot be found within the assembly this exception will be thrown</exception>
+  protected void Mock<T>(Mock<T>? alreadyMocked = null)
+    where T : class
+  {
+    if (alreadyMocked != null!)
     {
-        _loggerFactory = TestLoggerFactory.Create();
-        Services = new ServiceCollection();
+      Services.RefreshSingleton(alreadyMocked.Object);
     }
-
-    /// <summary>
-    /// <para>Adding Automapper configuration.  Extremely helpful for setting up profiles with minimal code.</para>
-    /// <para>You only need to call this once in your constructor.</para>
-    /// </summary>
-    ///
-    /// <example>
-    /// <code>
-    /// public Constructor()
-    /// {
-    ///    AddAutoMapper(cfg => {
-    ///      cfg.AddProfile{ProfileOne}();
-    ///      cfg.AddProfile{ProfileTwo}();
-    ///      ... etc ...
-    ///    });
-    /// }
-    /// </code>
-    /// </example>
-    /// <param name="profileAction"></param>
-    protected void AddAutoMapper(Action<IMapperConfigurationExpression> profileAction)
+    else
     {
-        var mapper = new MapperConfiguration(profileAction, NullLoggerFactory.Instance);
-        Services.AddSingleton(mapper);
-        Services.AddSingleton(mapper.CreateMapper());
+      var inst = (Mock<T>?)Activator.CreateInstance(typeof(Mock<T>));
+      Services.RefreshSingleton(inst?.Object ?? throw new InvalidOperationException());
     }
+  }
 
-    /// <summary>
-    /// <para>This is an extremely helpful function for registering melt loggers to inspect logging in your tests.</para>
-    /// <para>You can look through your logs using the protected property <see cref="LogEntries">LogEntries</see>.
-    /// Note as well that you can inspect the LogEntries and what logs were created in debug mode within your test.</para>
-    /// <para>By creating specific logs, you can concentrate only on the logs of the class you wish to test, making logs
-    /// far more easy to read in inspection, and more performant when running tests on them (less data to sift through
-    /// if your app is log heavy)</para>
-    /// </summary>
-    ///
-    /// <example>
-    /// <code>
-    /// public Constructor()
-    /// {
-    ///    // this essentially wraps the `ILogger{MyClass}` injection
-    ///    // in the service collection.  Whenever `ILogger{MyClass}`
-    ///    // is asked for, it will return the melt logger's wrapper.
-    ///    AddMeltLogger{MyClass}();
-    /// }
-    /// </code>
-    /// </example>
-    /// <typeparam name="T">The concrete class of the logger, leave out ILogger</typeparam>
-    protected void AddMeltLogger<T>() where T : class
-    {
-        var logger = _loggerFactory.CreateLogger<T>();
-        Services.RefreshSingleton(logger);
-    }
+  protected void MockOption<T>(T returnValue)
+    where T : class
+  {
+    var inst = (Mock<IOptions<T>>?)Activator.CreateInstance(typeof(Mock<IOptions<T>>));
+    inst!.Setup(x => x.Value).Returns(returnValue);
+    Services.RefreshSingleton(inst.Object);
+  }
 
-    /// <summary>
-    /// Mocks a singleton of the object using a function that returns the object itself.
-    /// </summary>
-    /// <param name="func"></param>
-    /// <typeparam name="T"></typeparam>
-    [Obsolete("We don't need a returned object anymore")]
-    protected void Mock<T>(Func<Mock<T>, Mock<T>> func) where T : class
-    {
-        var inst = (Mock<T>?) Activator.CreateInstance(typeof(Mock<T>));
-        Services.RefreshSingleton(func(inst!).Object);
-    }
+  protected void MockOption<T>(Action<Mock<IOptions<T>>> func)
+    where T : class
+  {
+    var inst = (Mock<IOptions<T>>?)Activator.CreateInstance(typeof(Mock<IOptions<T>>));
+    func(inst!);
+    Services.RefreshSingleton(inst!.Object);
+  }
 
-    /// <summary>
-    /// Mocks a transient by using a function that expects a returned object.
-    /// </summary>
-    /// <param name="func"></param>
-    /// <typeparam name="T"></typeparam>
-    [Obsolete("We don't need a returned object anymore")]
-    protected void MockTransient<T>(Func<Mock<T>, Mock<T>> func) where T : class
+  /// <summary>
+  /// For granularity, you can use this wrapper to wrap the exception that is thrown for a race condition
+  /// on the Castle.Proxies.  However, once you disable parallelization using the DisableParallelization collection
+  /// attribute, you no longer need this wrapper.
+  /// </summary>
+  /// <param name="func"></param>
+  /// <param name="output"></param>
+  protected void CastleProxyRaceConditionWrapper(Action func, ITestOutputHelper output = null!)
+  {
+    try
     {
-        var inst = (Mock<T>?) Activator.CreateInstance(typeof(Mock<T>));
-        Services.RefreshTransient(func(inst!).Object);
+      func();
     }
-
-    /// <summary>
-    /// <para>The most used aspect of the mock methods: Mocking and providing the mock functionality in one scoped call.</para>
-    /// <para>
-    /// The beauty of this wrapper allows us to take away the boilerplate code that registers the mocked object
-    /// into the service collection.  It reduces the clutter in your code and all you see written is the actual mock
-    /// which means your code is more readable as a consequence.  Unit tests are clean with this approach.
-    /// </para>
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// public Constructor()
-    /// {
-    ///   Mock{MyObject}(mockedObject => {
-    ///     mockedObject.Setup(x => x.Action(It.IsAny{Interface}))
-    ///       .Returns(true);
-    ///   });
-    /// }
-    /// </code>
-    /// </example>
-    /// <param name="func">Action on the mock that needs to performed</param>
-    /// <typeparam name="T">The concrete to mock</typeparam>
-    protected void Mock<T>(Action<Mock<T>> func) where T : class
+    catch (ReflectionTypeLoadException exc)
     {
-        var inst = (Mock<T>?) Activator.CreateInstance(typeof(Mock<T>));
-        func(inst!);
-        Services.RefreshSingleton(inst!.Object);
+      output.WriteLine(
+        "Warning: a reflection type load exception has been caught.  Consider turning off parallelization "
+          + "for your class if this error intermittently persists the rest of your tests"
+      );
+      output.WriteLine(exc.Message);
+      output.WriteLine(exc.StackTrace);
     }
-
-    /// <summary>
-    /// This follows a shorthand way to provide a mock without necessary boiler plate code around
-    /// instantiating a new mock object.  It falls in line with design since it's a protected method
-    /// in the base layout, increasing uniform readability in the unit tests.
-    /// </summary>
-    /// <param name="func"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    protected Mock<T> MockOf<T>(Action<Mock<T>>? func = null) where T : class
-    {
-        var inst = (Mock<T>?) Activator.CreateInstance(typeof(Mock<T>));
-        if (func is not null)
-        {
-            func(inst!);
-        }
-        return inst!;
-    }
-
-    /// <summary>
-    /// This is the shorthand version of either mocking an empty object and registering it, or
-    /// providing an already mocked object to register to the service collection.  The latter is
-    /// less used, except for very specific use case scenarios that come up only within context
-    /// of the test.  Otherwise, you'll use this just to mock something that you don't want
-    /// to have functionality attributed to, like an interface to keep a test from being an
-    /// integration test.
-    /// </summary>
-    /// <param name="alreadyMocked">A possible mocked object, can be null or empty (most use cases)</param>
-    /// <typeparam name="T">The object type to mock</typeparam>
-    /// <exception cref="InvalidOperationException">If the object cannot be found within the assembly this exception will be thrown</exception>
-    protected void Mock<T>(Mock<T>? alreadyMocked = null) where T : class
-    {
-        if (alreadyMocked != null!)
-        {
-            Services.RefreshSingleton(alreadyMocked.Object);
-        }
-        else
-        {
-            var inst = (Mock<T>?)Activator.CreateInstance(typeof(Mock<T>));
-            Services.RefreshSingleton(inst?.Object ?? throw new InvalidOperationException());
-        }
-    }
-
-    protected void MockOption<T>(T returnValue) where T : class
-    {
-        var inst = (Mock<IOptions<T>>?) Activator.CreateInstance(typeof(Mock<IOptions<T>>));
-        inst!.Setup(x => x.Value).Returns(returnValue);
-        Services.RefreshSingleton(inst.Object);
-    }
-
-    protected void MockOption<T>(Action<Mock<IOptions<T>>> func) where T : class
-    {
-        var inst = (Mock<IOptions<T>>?) Activator.CreateInstance(typeof(Mock<IOptions<T>>));
-        func(inst!);
-        Services.RefreshSingleton(inst!.Object);
-    }
-
-    /// <summary>
-    /// For granularity, you can use this wrapper to wrap the exception that is thrown for a race condition
-    /// on the Castle.Proxies.  However, once you disable parallelization using the DisableParallelization collection
-    /// attribute, you no longer need this wrapper.
-    /// </summary>
-    /// <param name="func"></param>
-    /// <param name="output"></param>
-    protected void CastleProxyRaceConditionWrapper(Action func, ITestOutputHelper output = null!)
-    {
-        try
-        {
-            func();
-        }
-        catch (ReflectionTypeLoadException exc)
-        {
-            output.WriteLine(
-                "Warning: a reflection type load exception has been caught.  Consider turning off parallelization " +
-                "for your class if this error intermittently persists the rest of your tests");
-            output.WriteLine(exc.Message);
-            output.WriteLine(exc.StackTrace);
-        }
-    }
+  }
 }

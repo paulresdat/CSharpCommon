@@ -5,14 +5,14 @@ namespace Csharp.Common.Extensions;
 
 public static class CommonServiceCollectionExtensions
 {
-    public static IServiceCollection AddConsoleOutput(this IServiceCollection serviceCollection)
-    {
-        serviceCollection.AddTransient<IConsoleOutput, ConsoleOutput>();
-        return serviceCollection;
-    }
+  public static IServiceCollection AddConsoleOutput(this IServiceCollection serviceCollection)
+  {
+    serviceCollection.AddTransient<IConsoleOutput, ConsoleOutput>();
+    return serviceCollection;
+  }
 
-    public static IConsoleOutput ConsoleOutput(this IServiceProvider serviceProvider)
-    {
-        return serviceProvider.GetRequiredService<IConsoleOutput>();
-    }
+  public static IConsoleOutput ConsoleOutput(this IServiceProvider serviceProvider)
+  {
+    return serviceProvider.GetRequiredService<IConsoleOutput>();
+  }
 }

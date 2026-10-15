@@ -10,10 +10,11 @@ namespace Csharp.Common.UnitTesting;
 /// </summary>
 public abstract class BaseSingleServiceProviderUnitTesting : BaseUnitTest
 {
-    private IServiceProvider? _serviceProvider;
+  private IServiceProvider? _serviceProvider;
 
-    protected override IServiceProvider GetNewServiceProvider =>
-        throw new InvalidOperationException("A new service provider is not supported");
+  protected override IServiceProvider GetNewServiceProvider =>
+    throw new InvalidOperationException("A new service provider is not supported");
 
-    protected virtual IServiceProvider ServiceProvider => _serviceProvider ??= Services.BuildServiceProvider();
+  protected virtual IServiceProvider ServiceProvider =>
+    _serviceProvider ??= Services.BuildServiceProvider();
 }

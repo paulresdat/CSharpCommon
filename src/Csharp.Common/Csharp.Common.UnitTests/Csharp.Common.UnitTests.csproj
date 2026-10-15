@@ -1,37 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>14</LangVersion>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <LangVersion>14</LangVersion>
-    </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Csharp.Common.EntityFramework.UnitTesting\Csharp.Common.EntityFramework.UnitTesting.csproj" />
+    <ProjectReference Include="..\Csharp.Common.EntityFramework\Csharp.Common.EntityFramework.csproj" />
+    <ProjectReference Include="..\Csharp.Common.UnitTesting\Csharp.Common.UnitTesting.csproj" />
+    <ProjectReference Include="..\Csharp.Common.Unsafe\Csharp.Common.Unsafe.csproj" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Csharp.Common.EntityFramework.UnitTesting\Csharp.Common.EntityFramework.UnitTesting.csproj" />
-      <ProjectReference Include="..\Csharp.Common.EntityFramework\Csharp.Common.EntityFramework.csproj" />
-      <ProjectReference Include="..\Csharp.Common.UnitTesting\Csharp.Common.UnitTesting.csproj" />
-      <ProjectReference Include="..\Csharp.Common.Unsafe\Csharp.Common.Unsafe.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="10.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.7" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="coverlet.collector" Version="10.0.0">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="FluentAssertions" Version="8.8.0" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.7" />
-      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-      <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Update="appsettings.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -10,13 +10,12 @@ namespace Csharp.Common.EntityFramework.Domain.Sql.Procedures;
 [AttributeUsage(AttributeTargets.Class)]
 public class IsProcedureAttribute : Attribute
 {
-    public string? ProcName { get; set; }
-    public IsProcedureAttribute()
-    {
-    }
+  public string? ProcName { get; set; }
 
-    public IsProcedureAttribute(string procName)
-    {
-        ProcName = procName;
-    }
+  public IsProcedureAttribute() { }
+
+  public IsProcedureAttribute(string procName)
+  {
+    ProcName = procName;
+  }
 }

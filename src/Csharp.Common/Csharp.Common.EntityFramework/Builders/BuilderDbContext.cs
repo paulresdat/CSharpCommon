@@ -6,7 +6,7 @@ namespace Csharp.Common.EntityFramework.Builders;
 
 public interface IBuilderDbContext<in TDbContext>
 {
-    void RegisterDbContext(TDbContext dbContext);
+  void RegisterDbContext(TDbContext dbContext);
 }
 
 /// <summary>
@@ -39,10 +39,10 @@ public interface IBuilderDbContext<in TDbContext>
 ///   public string FirstName { get; set; }
 ///   public string LastName { get; set; }
 /// }
-/// 
+///
 /// // db context
 /// DbSet{Person} People => Set{Person}();
-/// 
+///
 /// // builder
 /// class PersonBuilder : BuilderDbContext{Person, YourDbContext, PersonBuilder}
 /// {
@@ -65,108 +65,107 @@ public interface IBuilderDbContext<in TDbContext>
 /// <typeparam name="TModel">The DBSet Entity (your model)</typeparam>
 /// <typeparam name="TDbContext">Your DbContext type (can be an interface)</typeparam>
 /// <typeparam name="TParentBuilder">The parent builder for self awareness</typeparam>
-public abstract class BuilderDbContext<TModel, TDbContext, TParentBuilder> : 
-    BuilderDbConnector<TDbContext, TModel, TParentBuilder>,
-    IBuilderDbContext<TDbContext>, IBuilderServiceScope
-    where TDbContext : class, IAppDbContext
-    where TModel : class, new()
-    where TParentBuilder: BuilderAbstract<TModel, TParentBuilder>, new()
+public abstract class BuilderDbContext<TModel, TDbContext, TParentBuilder>
+  : BuilderDbConnector<TDbContext, TModel, TParentBuilder>,
+    IBuilderDbContext<TDbContext>,
+    IBuilderServiceScope
+  where TDbContext : class, IAppDbContext
+  where TModel : class, new()
+  where TParentBuilder : BuilderAbstract<TModel, TParentBuilder>, new()
 {
-    protected BuilderDbContext()
-    {
-    }
+  protected BuilderDbContext() { }
 
-    /// <summary>
-    /// This static builder acts as a wrapper to the `new` constructor.  It helps consistency by using a static method to
-    /// create a new type.  You don't need it necessarily, but here for code consistency.  Using <c>Create</c> while
-    /// injecting the dbContext in your integration tests is more fluent and readable in but neglecting Create in the
-    /// case where you don't need to inject a dbContext will show 2 different patterns in your code and it
-    /// thereby breaks consistency.  You can use <b>Create()</b> without injecting the db context if you just want to
-    /// create the object itself without being tied to EF.  You're code will look more consistent if you use
-    /// <c>Create</c> for all builder instantiations.  <c>BuildAndSave()</c> will throw an exception, you can only
-    /// <c>Build</c>.
-    /// </summary>
-    /// <returns></returns>
-    public static TParentBuilder Create()
-    {
-        var builder = new TParentBuilder();
-        return builder;
-    }
+  /// <summary>
+  /// This static builder acts as a wrapper to the `new` constructor.  It helps consistency by using a static method to
+  /// create a new type.  You don't need it necessarily, but here for code consistency.  Using <c>Create</c> while
+  /// injecting the dbContext in your integration tests is more fluent and readable in but neglecting Create in the
+  /// case where you don't need to inject a dbContext will show 2 different patterns in your code and it
+  /// thereby breaks consistency.  You can use <b>Create()</b> without injecting the db context if you just want to
+  /// create the object itself without being tied to EF.  You're code will look more consistent if you use
+  /// <c>Create</c> for all builder instantiations.  <c>BuildAndSave()</c> will throw an exception, you can only
+  /// <c>Build</c>.
+  /// </summary>
+  /// <returns></returns>
+  public static TParentBuilder Create()
+  {
+    var builder = new TParentBuilder();
+    return builder;
+  }
 
-    /// <summary>
-    /// This is the primary method used in integration tests to register the singleton of the dbContext, so that
-    /// all builders will remain within the database transaction in the integration test.  This can also be used
-    /// to push the scoped db context within a repository if you use a builder in production code.
-    /// </summary>
-    ///
-    /// <example>
-    /// <code>
-    /// // unit test constructor (readonly properties assigned in the constructor)
-    /// ServiceCollection.AddSingleton{YourDbContext}();
-    /// _serviceProvider = ServiceCollection.BuildServiceProvider()
-    /// _dbContext = _serviceProvider.GetRequiredService{YourDbContext}();
-    ///
-    /// 
-    /// // in your unit test
-    /// var myObj = MyObjectBuilder.Create(_dbContext)
-    ///   .WithDefaults()
-    ///   .AsASpecificScenario()
-    ///   .BuildAndSave();
-    /// </code>
-    /// </example>
-    /// <param name="dbContext"></param>
-    /// <returns></returns>
-    public static TParentBuilder Create(TDbContext dbContext)
-    {
-        var builder = new TParentBuilder();
-        ((IBuilderDbContext<TDbContext>)builder).RegisterDbContext(dbContext);
-        return builder;
-    }
+  /// <summary>
+  /// This is the primary method used in integration tests to register the singleton of the dbContext, so that
+  /// all builders will remain within the database transaction in the integration test.  This can also be used
+  /// to push the scoped db context within a repository if you use a builder in production code.
+  /// </summary>
+  ///
+  /// <example>
+  /// <code>
+  /// // unit test constructor (readonly properties assigned in the constructor)
+  /// ServiceCollection.AddSingleton{YourDbContext}();
+  /// _serviceProvider = ServiceCollection.BuildServiceProvider()
+  /// _dbContext = _serviceProvider.GetRequiredService{YourDbContext}();
+  ///
+  ///
+  /// // in your unit test
+  /// var myObj = MyObjectBuilder.Create(_dbContext)
+  ///   .WithDefaults()
+  ///   .AsASpecificScenario()
+  ///   .BuildAndSave();
+  /// </code>
+  /// </example>
+  /// <param name="dbContext"></param>
+  /// <returns></returns>
+  public static TParentBuilder Create(TDbContext dbContext)
+  {
+    var builder = new TParentBuilder();
+    ((IBuilderDbContext<TDbContext>)builder).RegisterDbContext(dbContext);
+    return builder;
+  }
 
-    /// <summary>
-    /// We can register a scoped service factory rather than a dbContext.  This allows the builder pattern to be used
-    /// within production code.  We actually don't really use this in production so you won't see this pattern in use.
-    /// </summary>
-    /// <param name="serviceScopeFactory"></param>
-    /// <returns></returns>
-    public static TParentBuilder Create(IServiceScopeFactory serviceScopeFactory)
-    {
-        var builder = new TParentBuilder();
-        ((IBuilderServiceScope)builder).RegisterServiceScope(serviceScopeFactory);
-        return builder;
-    }
+  /// <summary>
+  /// We can register a scoped service factory rather than a dbContext.  This allows the builder pattern to be used
+  /// within production code.  We actually don't really use this in production so you won't see this pattern in use.
+  /// </summary>
+  /// <param name="serviceScopeFactory"></param>
+  /// <returns></returns>
+  public static TParentBuilder Create(IServiceScopeFactory serviceScopeFactory)
+  {
+    var builder = new TParentBuilder();
+    ((IBuilderServiceScope)builder).RegisterServiceScope(serviceScopeFactory);
+    return builder;
+  }
 
-    /// <summary>
-    /// This method registers a service scope factory for the dbContext object to operate within a scoped, multithreaded
-    /// environment.  When fetching the DbContext in production, you need it to be scoped to the service scope factory
-    /// for multi-threaded use.  This is what makes the dbContext thread safe.
-    /// </summary>
-    /// <param name="serviceScopeFactory"></param>
-    public void RegisterServiceScope(IServiceScopeFactory serviceScopeFactory)
-    {
-        RegisterBuilderDbConnectorServiceScopeFactory(serviceScopeFactory);
-    }
+  /// <summary>
+  /// This method registers a service scope factory for the dbContext object to operate within a scoped, multithreaded
+  /// environment.  When fetching the DbContext in production, you need it to be scoped to the service scope factory
+  /// for multi-threaded use.  This is what makes the dbContext thread safe.
+  /// </summary>
+  /// <param name="serviceScopeFactory"></param>
+  public void RegisterServiceScope(IServiceScopeFactory serviceScopeFactory)
+  {
+    RegisterBuilderDbConnectorServiceScopeFactory(serviceScopeFactory);
+  }
 
-    /// <summary>
-    /// This method is a wrapper to the protected function of the DbConnector builder abstract class that handles
-    /// the db context handling of a EF tied builder.
-    /// </summary>
-    /// <param name="dbContext"></param>
-    public void RegisterDbContext(TDbContext dbContext)
-    {
-        RegisterTheDbContextExplicitlyRatherThanScopeFactory(dbContext);
-    }
+  /// <summary>
+  /// This method is a wrapper to the protected function of the DbConnector builder abstract class that handles
+  /// the db context handling of a EF tied builder.
+  /// </summary>
+  /// <param name="dbContext"></param>
+  public void RegisterDbContext(TDbContext dbContext)
+  {
+    RegisterTheDbContextExplicitlyRatherThanScopeFactory(dbContext);
+  }
 
-    /// <summary>
-    /// With a DbContext registered in the builder, automatically save the entity the database upon building
-    /// the model.
-    /// </summary>
-    /// <returns></returns>
-    public TModel BuildAndSave()
-    {
-        var model = (TModel)this;
-        DbContext.Set<TModel>().Add(model);
-        DbContext.SaveChanges();
-        return model;
-    }
+  /// <summary>
+  /// With a DbContext registered in the builder, automatically save the entity the database upon building
+  /// the model.
+  /// </summary>
+  /// <returns></returns>
+  public TModel BuildAndSave()
+  {
+    var model = (TModel)this;
+    DbContext.Set<TModel>().Add(model);
+    DbContext.SaveChanges();
+    return model;
+  }
 }

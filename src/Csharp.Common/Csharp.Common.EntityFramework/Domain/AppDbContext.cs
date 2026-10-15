@@ -16,182 +16,183 @@ namespace Csharp.Common.EntityFramework.Domain;
 /// </summary>
 public interface IAppDbContext
 {
-    int SaveChanges();
-    DatabaseFacade Database { get; }
-    EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
-    DbSet<TEntity> Set<TEntity>() where TEntity : class;
+  int SaveChanges();
+  DatabaseFacade Database { get; }
+  EntityEntry<TEntity> Entry<TEntity>(TEntity entity)
+    where TEntity : class;
+  DbSet<TEntity> Set<TEntity>()
+    where TEntity : class;
 }
 
 public interface IAppDbContextTesting
 {
-    void StartTestTransaction();
-    void EndTestTransaction();
+  void StartTestTransaction();
+  void EndTestTransaction();
 }
 
 /// <summary>
-/// 
+///
 /// </summary>
 public interface IAppDbContextTransaction : IAppDbContext
 {
-    void StartTransaction();
-    Task StartTransactionAsync();
-    void RollbackTransaction();
-    Task RollbackTransactionAsync();
-    void CommitTransaction();
-    Task CommitTransactionAsync();
+  void StartTransaction();
+  Task StartTransactionAsync();
+  void RollbackTransaction();
+  Task RollbackTransactionAsync();
+  void CommitTransaction();
+  Task CommitTransactionAsync();
 
-    void SavePoint(string savePoint);
-    Task SavePointAsync(string savePoint);
-    void RollbackToSavePoint(string savePoint);
-    Task RollbackToSavePointAsync(string savePoint);
+  void SavePoint(string savePoint);
+  Task SavePointAsync(string savePoint);
+  void RollbackToSavePoint(string savePoint);
+  Task RollbackToSavePointAsync(string savePoint);
 }
 
 /// <summary>
-/// 
+///
 /// </summary>
 public abstract class AppDbContext : DbContext, IAppDbContextTransaction, IAppDbContextTesting
 {
-    protected readonly string ConnectionString;
-    private IDbContextTransaction? Transaction { get; set; }
+  protected readonly string ConnectionString;
+  private IDbContextTransaction? Transaction { get; set; }
 
-    protected AppDbContext(IOptions<IAppDbContextOptions> options)
+  protected AppDbContext(IOptions<IAppDbContextOptions> options)
+  {
+    var dbContextOptions = options.Value;
+    ConnectionString = dbContextOptions.ConnectionStrings?.DbContext ?? "";
+  }
+
+  /// <summary>
+  /// </summary>
+  public void StartTestTransaction()
+  {
+    Transaction = Database.BeginTransaction();
+  }
+
+  /// <summary>
+  /// </summary>
+  public void EndTestTransaction()
+  {
+    Transaction?.Rollback();
+  }
+
+  /// <summary>
+  /// </summary>
+  public void StartTransaction()
+  {
+    if (Transaction is not null)
     {
-        var dbContextOptions = options.Value;
-        ConnectionString = dbContextOptions.ConnectionStrings?.DbContext ?? "";
+      throw new InvalidOperationException("Can not call transaction more than once");
+    }
+    Transaction = Database.BeginTransaction();
+  }
+
+  /// <summary>
+  /// </summary>
+  /// <exception cref="InvalidOperationException"></exception>
+  public async Task StartTransactionAsync()
+  {
+    if (Transaction is not null)
+    {
+      throw new InvalidOperationException("Can not call transaction more than once");
     }
 
-    /// <summary>
-    /// </summary>
-    public void StartTestTransaction()
-    {
-        Transaction = Database.BeginTransaction();
-    }
+    Transaction = await Database.BeginTransactionAsync();
+  }
 
-    /// <summary>
-    /// </summary>
-    public void EndTestTransaction()
+  /// <summary>
+  /// </summary>
+  public void RollbackTransaction()
+  {
+    if (Transaction is not null)
     {
-        Transaction?.Rollback();
+      Transaction.Rollback();
     }
+  }
 
-    /// <summary>
-    /// </summary>
-    public void StartTransaction()
+  /// <summary>
+  /// </summary>
+  public async Task RollbackTransactionAsync()
+  {
+    if (Transaction is not null)
     {
-        if (Transaction is not null)
-        {
-            throw new InvalidOperationException("Can not call transaction more than once");
-        }
-        Transaction = Database.BeginTransaction();
+      await Transaction.RollbackAsync();
     }
+  }
 
-    /// <summary>
-    /// </summary>
-    /// <exception cref="InvalidOperationException"></exception>
-    public async Task StartTransactionAsync()
+  /// <summary>
+  /// </summary>
+  public void CommitTransaction()
+  {
+    if (Transaction is not null)
     {
-        if (Transaction is not null)
-        {
-            throw new InvalidOperationException("Can not call transaction more than once");
-        }
-
-        Transaction = await Database.BeginTransactionAsync();
+      Transaction.Commit();
     }
+  }
 
-    /// <summary>
-    /// </summary>
-    public void RollbackTransaction()
+  /// <summary>
+  /// </summary>
+  public async Task CommitTransactionAsync()
+  {
+    if (Transaction is not null)
     {
-        if (Transaction is not null)
-        {
-            Transaction.Rollback();
-        }
+      await Transaction.CommitAsync();
     }
+  }
 
-    /// <summary>
-    /// </summary>
-    public async Task RollbackTransactionAsync()
+  /// <summary>
+  /// </summary>
+  /// <param name="savePoint"></param>
+  public void SavePoint(string savePoint)
+  {
+    if (Transaction is not null && Transaction.SupportsSavepoints)
     {
-        if (Transaction is not null)
-        {
-            await Transaction.RollbackAsync();
-        }
+      Transaction.CreateSavepoint(savePoint);
     }
+    CheckForInvalidSavePointCall();
+  }
 
-    /// <summary>
-    /// </summary>
-    public void CommitTransaction()
+  /// <summary>
+  /// </summary>
+  /// <param name="savePoint"></param>
+  public async Task SavePointAsync(string savePoint)
+  {
+    if (Transaction is not null && Transaction.SupportsSavepoints)
     {
-        if (Transaction is not null)
-        {
-            Transaction.Commit();
-        }
+      await Transaction.CreateSavepointAsync(savePoint);
     }
+    CheckForInvalidSavePointCall();
+  }
 
-    /// <summary>
-    /// </summary>
-    public async Task CommitTransactionAsync()
+  /// <summary>
+  /// </summary>
+  /// <param name="savePoint"></param>
+  public void RollbackToSavePoint(string savePoint)
+  {
+    if (Transaction is not null && Transaction.SupportsSavepoints)
     {
-        
-        if (Transaction is not null)
-        {
-            await Transaction.CommitAsync();
-        }
+      Transaction.RollbackToSavepoint(savePoint);
     }
+    CheckForInvalidSavePointCall();
+  }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="savePoint"></param>
-    public void SavePoint(string savePoint)
+  /// <summary>
+  /// </summary>
+  /// <param name="savePoint"></param>
+  public async Task RollbackToSavePointAsync(string savePoint)
+  {
+    if (Transaction is not null && Transaction.SupportsSavepoints)
     {
-        if (Transaction is not null && Transaction.SupportsSavepoints)
-        {
-            Transaction.CreateSavepoint(savePoint);
-        }
-        CheckForInvalidSavePointCall();
+      await Transaction.RollbackToSavepointAsync(savePoint);
     }
+    CheckForInvalidSavePointCall();
+  }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="savePoint"></param>
-    public async Task SavePointAsync(string savePoint)
+  private void CheckForInvalidSavePointCall()
+  {
+    if (Transaction is not null && !Transaction.SupportsSavepoints)
     {
-        if (Transaction is not null && Transaction.SupportsSavepoints)
-        {
-            await Transaction.CreateSavepointAsync(savePoint);
-        }
-        CheckForInvalidSavePointCall();
+      throw new InvalidOperationException("Save points are not supported");
     }
-
-    /// <summary>
-    /// </summary>
-    /// <param name="savePoint"></param>
-    public void RollbackToSavePoint(string savePoint)
-    {
-        if (Transaction is not null && Transaction.SupportsSavepoints)
-        {
-            Transaction.RollbackToSavepoint(savePoint);
-        }
-        CheckForInvalidSavePointCall();
-    }
-
-    /// <summary>
-    /// </summary>
-    /// <param name="savePoint"></param>
-    public async Task RollbackToSavePointAsync(string savePoint)
-    {
-        if (Transaction is not null && Transaction.SupportsSavepoints)
-        {
-            await Transaction.RollbackToSavepointAsync(savePoint);
-        }
-        CheckForInvalidSavePointCall();
-    }
-
-    private void CheckForInvalidSavePointCall()
-    {
-        if (Transaction is not null && !Transaction.SupportsSavepoints)
-        {
-            throw new InvalidOperationException("Save points are not supported");
-        }
-    }
+  }
 }

@@ -1,15 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>14</LangVersion>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <LangVersion>14</LangVersion>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Csharp.Common.EntityFramework\Csharp.Common.EntityFramework.csproj" />
-      <ProjectReference Include="..\Csharp.Common.UnitTesting\Csharp.Common.UnitTesting.csproj" />
-    </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\Csharp.Common.EntityFramework\Csharp.Common.EntityFramework.csproj" />
+    <ProjectReference Include="..\Csharp.Common.UnitTesting\Csharp.Common.UnitTesting.csproj" />
+  </ItemGroup>
 </Project>

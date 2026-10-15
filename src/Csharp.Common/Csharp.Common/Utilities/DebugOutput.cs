@@ -8,16 +8,17 @@ namespace Csharp.Common.Utilities;
 /// </summary>
 public interface IDebugOutput
 {
-    /// <summary>
-    /// The abstract class requires some casting, here you have access to the delegate through an interface cast
-    /// unless you extend the interface of your base class with this
-    /// </summary>
-    event DebugOutputDelegate? DebugOutputDelegate;
-    /// <summary>
-    /// You can copy the implementation details from the abstract class when implementing this method
-    /// </summary>
-    /// <param name="data"></param>
-    void ConsoleWrite(params object[] data);
+  /// <summary>
+  /// The abstract class requires some casting, here you have access to the delegate through an interface cast
+  /// unless you extend the interface of your base class with this
+  /// </summary>
+  event DebugOutputDelegate? DebugOutputDelegate;
+
+  /// <summary>
+  /// You can copy the implementation details from the abstract class when implementing this method
+  /// </summary>
+  /// <param name="data"></param>
+  void ConsoleWrite(params object[] data);
 }
 
 public delegate void DebugOutputDelegate(string message);
@@ -51,45 +52,45 @@ public delegate void DebugOutputDelegate(string message);
 /// </summary>
 public abstract class DebugOutput : IDebugOutput
 {
-    private string? _preamble;
-    private readonly Type _pT;
-    public event DebugOutputDelegate? DebugOutputDelegate;
+  private string? _preamble;
+  private readonly Type _pT;
+  public event DebugOutputDelegate? DebugOutputDelegate;
 
-    private string Pre
+  private string Pre
+  {
+    get
     {
-        get
-        {
-            if (_preamble is not null)
-            {
-                return _preamble == string.Empty ? string.Empty : _preamble + ": ";
-            }
+      if (_preamble is not null)
+      {
+        return _preamble == string.Empty ? string.Empty : _preamble + ": ";
+      }
 
-            return _pT.Name + ": ";
-        }
+      return _pT.Name + ": ";
+    }
+  }
+
+  public DebugOutput()
+  {
+    _pT = GetType();
+  }
+
+  public void SetPreamble(string preamble)
+  {
+    if (preamble == string.Empty)
+    {
+      _preamble = string.Empty;
     }
 
-    public DebugOutput()
-    {
-        _pT = GetType();
-    }
+    _preamble = preamble;
+  }
 
-    public void SetPreamble(string preamble)
+  public void ConsoleWrite(params object[] data)
+  {
+    foreach (var obj in data)
     {
-        if (preamble == string.Empty)
-        {
-            _preamble = string.Empty;
-        }
-
-        _preamble = preamble;
+      DebugOutputDelegate?.Invoke(Pre + obj);
     }
-
-    public void ConsoleWrite(params object[] data)
-    {
-        foreach (var obj in data)
-        {
-            DebugOutputDelegate?.Invoke(Pre + obj);
-        }
-    }
+  }
 }
 
 /// <summary>
@@ -100,8 +101,8 @@ public abstract class DebugOutput : IDebugOutput
 /// <typeparam name="T"></typeparam>
 public abstract class DebugOutput<T> : DebugOutput
 {
-    protected DebugOutput()
-    {
-        SetPreamble(typeof(T).Name);
-    }
+  protected DebugOutput()
+  {
+    SetPreamble(typeof(T).Name);
+  }
 }

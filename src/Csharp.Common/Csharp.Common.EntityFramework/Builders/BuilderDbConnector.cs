@@ -16,38 +16,41 @@ namespace Csharp.Common.EntityFramework.Builders;
 /// <typeparam name="TDbContext"></typeparam>
 /// <typeparam name="TModel"></typeparam>
 /// <typeparam name="TParentModel"></typeparam>
-public abstract class BuilderDbConnector<TDbContext, TModel, TParentModel> : BuilderAbstract<TModel, TParentModel> 
-    where TDbContext: class, IAppDbContext
-    where TModel: class, new()
-    where TParentModel: BuilderAbstract<TModel, TParentModel>, new()
+public abstract class BuilderDbConnector<TDbContext, TModel, TParentModel>
+  : BuilderAbstract<TModel, TParentModel>
+  where TDbContext : class, IAppDbContext
+  where TModel : class, new()
+  where TParentModel : BuilderAbstract<TModel, TParentModel>, new()
 {
-    private IServiceScopeFactory? _serviceScopeFactory;
+  private IServiceScopeFactory? _serviceScopeFactory;
 
-    protected void RegisterBuilderDbConnectorServiceScopeFactory(IServiceScopeFactory serviceScopeFactory)
+  protected void RegisterBuilderDbConnectorServiceScopeFactory(
+    IServiceScopeFactory serviceScopeFactory
+  )
+  {
+    _serviceScopeFactory = serviceScopeFactory;
+  }
+
+  protected void RegisterTheDbContextExplicitlyRatherThanScopeFactory(TDbContext dbContext)
+  {
+    PrivateContext = dbContext;
+  }
+
+  private TDbContext? PrivateContext { get; set; }
+
+  protected TDbContext DbContext
+  {
+    get
     {
-        _serviceScopeFactory = serviceScopeFactory;
-    }
+      if (PrivateContext == null)
+      {
+        var scope = _serviceScopeFactory?.CreateScope();
+        PrivateContext =
+          scope?.ServiceProvider.GetRequiredService<TDbContext>()
+          ?? throw new BuilderException("Invalid db context provided for database builder");
+      }
 
-    protected void RegisterTheDbContextExplicitlyRatherThanScopeFactory(TDbContext dbContext)
-    {
-        PrivateContext = dbContext;
+      return PrivateContext;
     }
-
-    private TDbContext? PrivateContext { get; set; }
-
-    protected TDbContext DbContext
-    {
-        get
-        {
-            if (PrivateContext == null)
-            {
-                var scope = _serviceScopeFactory?.CreateScope();
-                PrivateContext = scope?.ServiceProvider.GetRequiredService<TDbContext>()
-                    ?? throw new BuilderException("Invalid db context provided for database builder");
-            }
-            
-            return PrivateContext;
-        }
-    }
+  }
 }
-

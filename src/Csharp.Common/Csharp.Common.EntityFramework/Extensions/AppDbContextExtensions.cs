@@ -2,65 +2,138 @@ using System.Linq.Expressions;
 using Csharp.Common.EntityFramework.Domain;
 using Csharp.Common.EntityFramework.Domain.Sql.Procedures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Csharp.Common.EntityFramework.Extensions;
 
 public static class AppDbContextExtensions
 {
-    public static IEntityProcedure CallProcedure(this IAppDbContext dbContext, string procedureName, IEntityProcedure? passedProc = null)
+  private static IReadOnlyList<ITableResetStrategy> Strategies { get; } =
+  [
+    new SqliteTableResetStrategy(),
+    new SqlServerTableResetStrategy(),
+  ];
+
+  public static IEntityProcedure CallProcedure(
+    this IAppDbContext dbContext,
+    string procedureName,
+    IEntityProcedure? passedProc = null
+  )
+  {
+    var entityProcedure = passedProc ?? new EntityProcedure();
+    entityProcedure.SetDbContext(dbContext).SetProcedure(procedureName);
+    return entityProcedure;
+  }
+
+  public static IEntityProcedure<T> CallProcedure<T>(
+    this IAppDbContext dbContext,
+    string procedureName,
+    IEntityProcedure<T>? passedProc = null
+  )
+    where T : class
+  {
+    var entityProcedure = passedProc ?? new EntityProcedure<T>();
+    entityProcedure.SetDbContext(dbContext).SetProcedure(procedureName);
+    return entityProcedure;
+  }
+
+  [Obsolete("CALL is better than LOAD as terminology for executing a stored procedure")]
+  public static IEntityProcedure<T> LoadProcedure<T>(
+    this IAppDbContext dbContext,
+    string procedureName
+  )
+    where T : class
+  {
+    var entityProcedure = new EntityProcedure<T>(dbContext, procedureName);
+    return entityProcedure;
+  }
+
+  public static IEntityProcedure<T> WithParameter<T>(
+    this IEntityProcedure<T> ep,
+    string paramName,
+    object paramValue
+  )
+    where T : class
+  {
+    ep.AddParameter(paramName, paramValue);
+    return ep;
+  }
+
+  public static IEntityProcedure<T> WithParameters<T>(
+    this IEntityProcedure<T> ep,
+    object[] paramValues
+  )
+    where T : class
+  {
+    foreach (var t in paramValues)
     {
-        var entityProcedure = passedProc ?? new EntityProcedure();
-        entityProcedure.SetDbContext(dbContext).SetProcedure(procedureName);
-        return entityProcedure;
+      ep.Add(t);
     }
 
-    public static IEntityProcedure<T> CallProcedure<T>(this IAppDbContext dbContext, string procedureName, IEntityProcedure<T>? passedProc = null) where T : class
+    return ep;
+  }
+
+  public static T ClearTable<T, TProp>(this T dbContext, Expression<Func<T, TProp>> expression)
+    where T : IAppDbContext
+  {
+    var tableName = ((MemberExpression)expression.Body).Member.Name;
+    var strategy = Strategies.SingleOrDefault(x =>
+      x.Supports(dbContext.Database.ProviderName)
+    );
+
+    if (strategy is null)
     {
-        var entityProcedure = passedProc ?? new EntityProcedure<T>();
-        entityProcedure.SetDbContext(dbContext).SetProcedure(procedureName);
-        return entityProcedure;
+      throw new NotSupportedException(
+        $"Clearing tables is not supported for provider '{dbContext.Database.ProviderName}'."
+      );
     }
 
-    [Obsolete("CALL is better than LOAD as terminology for executing a stored procedure")]
-    public static IEntityProcedure<T> LoadProcedure<T>(this IAppDbContext dbContext, string procedureName) where T : class
-    {
-        var entityProcedure = new EntityProcedure<T>(dbContext, procedureName);
-        return entityProcedure;
-    }
+    strategy.Reset(dbContext.Database, tableName);
+    return dbContext;
+  }
+}
 
-    public static IEntityProcedure<T> WithParameter<T>(this IEntityProcedure<T> ep, string paramName, object paramValue) where T : class
-    {
-        ep.AddParameter(paramName, paramValue);
-        return ep;
-    }
+internal interface ITableResetStrategy
+{
+  bool Supports(string? providerName);
 
-    public static IEntityProcedure<T> WithParameters<T>(this IEntityProcedure<T> ep, object[] paramValues) where T : class
-    {
-        foreach (var t in paramValues)
-        {
-            ep.Add(t);
-        }
+  void Reset(DatabaseFacade database, string tableName);
+}
 
-        return ep;
-    }
+internal sealed class SqliteTableResetStrategy : ITableResetStrategy
+{
+  public bool Supports(string? providerName) =>
+    providerName == "Microsoft.EntityFrameworkCore.Sqlite";
 
-    public static T ClearTable<T, TProp>(this T dbContext, Expression<Func<T, TProp>> expression) where T : IAppDbContext
-    {
-        var typeName = dbContext.Database.GetDbConnection().GetType().Name;
-        var tableName = ((MemberExpression) expression.Body).Member.Name;
-        if (typeName == "SqliteConnection")
-        {
-            // for now just truncate
-            // TODO - warning here on sql raw, although this shouldn't be an issue, the warning should go away
-            // Analysis - ExecuteSql runs an error if substituted - troubleshoot or suppress warnings
-            dbContext.Database.ExecuteSqlRaw($"delete from {tableName}");
-            dbContext.Database.ExecuteSqlRaw($"update sqlite_sequence set seq=1 where name = '{tableName}'");
-        }
-        else
-        {
-            dbContext.Database.ExecuteSqlRaw($"DELETE FROM [{tableName}];");
-            dbContext.Database.ExecuteSqlRaw($"DBCC CHECKIDENT ('{tableName}', RESEED, 1);");
-        }
-        return dbContext;
-    }
+  public void Reset(DatabaseFacade database, string tableName)
+  {
+    var helper = database.GetService<ISqlGenerationHelper>();
+    var identifier = helper.DelimitIdentifier(tableName);
+
+    var deleteSql = $"DELETE FROM {identifier};";
+    database.ExecuteSqlRaw(deleteSql);
+
+    const string updateSequenceSql =
+      "UPDATE sqlite_sequence SET seq = 1 WHERE name = {0};";
+    database.ExecuteSqlRaw(updateSequenceSql, tableName);
+  }
+}
+
+internal sealed class SqlServerTableResetStrategy : ITableResetStrategy
+{
+  public bool Supports(string? providerName) =>
+    providerName == "Microsoft.EntityFrameworkCore.SqlServer";
+
+  public void Reset(DatabaseFacade database, string tableName)
+  {
+    var helper = database.GetService<ISqlGenerationHelper>();
+    var identifier = helper.DelimitIdentifier(tableName);
+
+    var deleteSql = $"DELETE FROM {identifier};";
+    database.ExecuteSqlRaw(deleteSql);
+
+    var resetIdentitySql = $"DBCC CHECKIDENT ('{identifier}', RESEED, 1);";
+    database.ExecuteSqlRaw(resetIdentitySql);
+  }
 }

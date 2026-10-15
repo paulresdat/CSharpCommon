@@ -5,35 +5,35 @@ namespace Csharp.Common.Db.Builders;
 
 public class CarBuilder : BuilderDbContext<Car, CsharpCommonTestingDbContext, CarBuilder>
 {
-    public override CarBuilder WithDefaults()
+  public override CarBuilder WithDefaults()
+  {
+    return With(x =>
     {
-        return With(x =>
-        {
-            x.Name = "DEFAULT CAR NAME";
-            x.CarMake = CarMake.Volkswagen;
-        });
-    }
+      x.Name = "DEFAULT CAR NAME";
+      x.CarMake = CarMake.Volkswagen;
+    });
+  }
 
-    public CarBuilder WithName(string name)
-    {
-        return With(x => x.Name = name);
-    }
+  public CarBuilder WithName(string name)
+  {
+    return With(x => x.Name = name);
+  }
 
-    public CarBuilder With(CarMake carMake)
-    {
-        return With(x => x.CarMake = carMake);
-    }
+  public CarBuilder With(CarMake carMake)
+  {
+    return With(x => x.CarMake = carMake);
+  }
 }
 
 public class PersonBuilder : BuilderDbContext<Person, ICsharpCommonTestingDbContext, PersonBuilder>
 {
-    public override PersonBuilder WithDefaults()
-    {
-        return With(x => { });
-    }
+  public override PersonBuilder WithDefaults()
+  {
+    return With(x => { });
+  }
 
-    public PersonBuilder WithName(string name)
-    {
-        return With(x => x.Name = name);
-    }
-} 
+  public PersonBuilder WithName(string name)
+  {
+    return With(x => x.Name = name);
+  }
+}

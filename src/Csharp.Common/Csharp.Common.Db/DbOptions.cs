@@ -4,6 +4,6 @@ namespace Csharp.Common.Db;
 
 public class DbOptions : IAppDbContextOptions
 {
-    public ConnectionStringOptions? ConnectionStrings { get; set; }
-    public int NumberOfQueryRetriesBeforeSendingException { get; set; }
+  public ConnectionStringOptions? ConnectionStrings { get; set; }
+  public int NumberOfQueryRetriesBeforeSendingException { get; set; }
 }

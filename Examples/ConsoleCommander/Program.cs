@@ -4,6 +4,7 @@ using Csharp.Common.Utilities.ConsoleCommander;
 using Microsoft.Extensions.DependencyInjection;
 
 var serviceCollection = new ServiceCollection();
+
 // setting up the required dependencies for the cli commander
 serviceCollection.AddSingleton<ICommandLineProcessor, CommandLineProcessor>();
 serviceCollection.AddSingleton<IConsoleCommandList, CommandList>();

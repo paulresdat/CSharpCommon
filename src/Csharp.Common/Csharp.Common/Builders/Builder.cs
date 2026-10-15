@@ -54,12 +54,14 @@ namespace Csharp.Common.Builders;
 /// </summary>
 /// <typeparam name="TModel">The Model type it will generate</typeparam>
 /// <typeparam name="TParentBuilder">The parent builder for self awareness</typeparam>
-public abstract class Builder<TModel, TParentBuilder> : BuilderAbstract<TModel, TParentBuilder>, IBuilder
-    where TModel : class, new()
-    where TParentBuilder : BuilderAbstract<TModel, TParentBuilder>, new()
+public abstract class Builder<TModel, TParentBuilder>
+  : BuilderAbstract<TModel, TParentBuilder>,
+    IBuilder
+  where TModel : class, new()
+  where TParentBuilder : BuilderAbstract<TModel, TParentBuilder>, new()
 {
-    public static TParentBuilder Create()
-    {
-        return new TParentBuilder();
-    }
+  public static TParentBuilder Create()
+  {
+    return new TParentBuilder();
+  }
 }

@@ -7,22 +7,22 @@ namespace Csharp.Common.Db;
 
 public interface ICsharpCommonTestingDbContext : IAppDbContext
 {
-    DbSet<Person> People { get; }
-    DbSet<Car> Cars { get; }
-    DbSet<PersonCarXref> PersonCarXrefs { get; }
+  DbSet<Person> People { get; }
+  DbSet<Car> Cars { get; }
+  DbSet<PersonCarXref> PersonCarXrefs { get; }
 }
 
 public class CsharpCommonTestingDbContext(IOptions<DbOptions> options)
-    : AppDbContext(options), ICsharpCommonTestingDbContext
+  : AppDbContext(options),
+    ICsharpCommonTestingDbContext
 {
-    
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        base.OnConfiguring(optionsBuilder);
-        optionsBuilder.UseSqlServer(ConnectionString, sqlServerOptionsAction: sqlOptions => { });
-    }
+  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+  {
+    base.OnConfiguring(optionsBuilder);
+    optionsBuilder.UseSqlServer(ConnectionString, sqlServerOptionsAction: sqlOptions => { });
+  }
 
-    public DbSet<Person> People => Set<Person>();
-    public DbSet<Car> Cars => Set<Car>();
-    public DbSet<PersonCarXref> PersonCarXrefs => Set<PersonCarXref>();
+  public DbSet<Person> People => Set<Person>();
+  public DbSet<Car> Cars => Set<Car>();
+  public DbSet<PersonCarXref> PersonCarXrefs => Set<PersonCarXref>();
 }

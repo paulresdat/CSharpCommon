@@ -2,26 +2,44 @@ namespace Csharp.Common.Utilities.ThreadSafety;
 
 public interface IThreadSafeLockingFactory
 {
-    void EnterReadLock<T>(T lockKey, Action action) where T : notnull;
-    T2 EnterReadLock<T, T2>(T lockKey, Func<T2> action) where T : notnull;
-    void EnterReadWriteLock<T>(T lockKey, Action action) where T : notnull;
-    T2 EnterReadWriteLock<T, T2>(T lockKey, Func<T2> action) where T : notnull;
+  void EnterReadLock<T>(T lockKey, Action action)
+    where T : notnull;
+  T2 EnterReadLock<T, T2>(T lockKey, Func<T2> action)
+    where T : notnull;
+  void EnterReadWriteLock<T>(T lockKey, Action action)
+    where T : notnull;
+  T2 EnterReadWriteLock<T, T2>(T lockKey, Func<T2> action)
+    where T : notnull;
 
-    void EnterUpgradeableReadLock<T>(T lockKey, Action action) where T : notnull;
-    T2 EnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action) where T : notnull;
-    void TryEnterUpgradeableReadLock<T>(T lockKey, Action action, TimeSpan timeSpan) where T : notnull;
-    T2 TryEnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action, TimeSpan timeSpan) where T : notnull;
-    void TryEnterUpgradeableReadLock<T>(T lockKey, Action action, int millisecondsTimeout) where T : notnull;
-    T2 TryEnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout) where T : notnull;
+  void EnterUpgradeableReadLock<T>(T lockKey, Action action)
+    where T : notnull;
+  T2 EnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action)
+    where T : notnull;
+  void TryEnterUpgradeableReadLock<T>(T lockKey, Action action, TimeSpan timeSpan)
+    where T : notnull;
+  T2 TryEnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action, TimeSpan timeSpan)
+    where T : notnull;
+  void TryEnterUpgradeableReadLock<T>(T lockKey, Action action, int millisecondsTimeout)
+    where T : notnull;
+  T2 TryEnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout)
+    where T : notnull;
 
-    void TryEnterReadLock<T>(T lockKey, Action action, TimeSpan tryTimeSpan) where T : notnull;
-    T2 TryEnterReadLock<T, T2>(T lockKey, Func<T2> action, TimeSpan tryTimeSpan) where T : notnull;
-    void TryEnterReadWriteLock<T>(T lockKey, Action action, TimeSpan tryTimeSpan) where T : notnull;
-    T2 TryEnterReadWriteLock<T, T2>(T lockKey, Func<T2> action, TimeSpan tryTimeSpan) where T : notnull;
-    void TryEnterReadLock<T>(T lockKey, Action action, int millisecondsTimeout) where T : notnull;
-    T2 TryEnterReadLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout) where T : notnull;
-    void TryEnterReadWriteLock<T>(T lockKey, Action action, int millisecondsTimeout) where T : notnull;
-    T2 TryEnterReadWriteLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout) where T : notnull;
+  void TryEnterReadLock<T>(T lockKey, Action action, TimeSpan tryTimeSpan)
+    where T : notnull;
+  T2 TryEnterReadLock<T, T2>(T lockKey, Func<T2> action, TimeSpan tryTimeSpan)
+    where T : notnull;
+  void TryEnterReadWriteLock<T>(T lockKey, Action action, TimeSpan tryTimeSpan)
+    where T : notnull;
+  T2 TryEnterReadWriteLock<T, T2>(T lockKey, Func<T2> action, TimeSpan tryTimeSpan)
+    where T : notnull;
+  void TryEnterReadLock<T>(T lockKey, Action action, int millisecondsTimeout)
+    where T : notnull;
+  T2 TryEnterReadLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout)
+    where T : notnull;
+  void TryEnterReadWriteLock<T>(T lockKey, Action action, int millisecondsTimeout)
+    where T : notnull;
+  T2 TryEnterReadWriteLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout)
+    where T : notnull;
 }
 
 /// <summary>
@@ -69,140 +87,158 @@ public interface IThreadSafeLockingFactory
 /// keys.
 /// </para>
 /// </summary>
-public class ThreadSafeLockingFactory: ThreadSafe, IThreadSafeLockingFactory
+public class ThreadSafeLockingFactory : ThreadSafe, IThreadSafeLockingFactory
 {
-    private readonly Dictionary<object, IThreadSafeLock> _locks = new();
+  private readonly Dictionary<object, IThreadSafeLock> _locks = new();
 
-    public void EnterReadLock<T>(T lockKey, Action action) where T: notnull
+  public void EnterReadLock<T>(T lockKey, Action action)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.EnterReadLock(action);
+  }
+
+  public T2 EnterReadLock<T, T2>(T lockKey, Func<T2> action)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.EnterReadLock(action);
+  }
+
+  public void EnterReadWriteLock<T>(T lockKey, Action action)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.EnterReadWriteLock(action);
+  }
+
+  public T2 EnterReadWriteLock<T, T2>(T lockKey, Func<T2> action)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.EnterReadWriteLock(action);
+  }
+
+  public void EnterUpgradeableReadLock<T>(T lockKey, Action action)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.EnterUpgradeableReadLock(action);
+  }
+
+  public T2 EnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.EnterUpgradeableReadLock(action);
+  }
+
+  public void TryEnterUpgradeableReadLock<T>(T lockKey, Action action, TimeSpan timeSpan)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.TryEnterUpgradeableReadLock(action, timeSpan);
+  }
+
+  public T2 TryEnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action, TimeSpan timeSpan)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.TryEnterUpgradeableReadLock(action, timeSpan);
+  }
+
+  public void TryEnterUpgradeableReadLock<T>(T lockKey, Action action, int millisecondsTimeout)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.TryEnterUpgradeableReadLock(action, millisecondsTimeout);
+  }
+
+  public T2 TryEnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.TryEnterUpgradeableReadLock(action, millisecondsTimeout);
+  }
+
+  public void TryEnterReadLock<T>(T lockKey, Action action, TimeSpan tryTimeSpan)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.TryEnterReadLock(action, tryTimeSpan);
+  }
+
+  public T2 TryEnterReadLock<T, T2>(T lockKey, Func<T2> action, TimeSpan tryTimeSpan)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.TryEnterReadLock(action, tryTimeSpan);
+  }
+
+  public void TryEnterReadWriteLock<T>(T lockKey, Action action, TimeSpan tryTimeSpan)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.TryEnterReadWriteLock(action, tryTimeSpan);
+  }
+
+  public T2 TryEnterReadWriteLock<T, T2>(T lockKey, Func<T2> action, TimeSpan tryTimeSpan)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.TryEnterReadWriteLock(action, tryTimeSpan);
+  }
+
+  public void TryEnterReadLock<T>(T lockKey, Action action, int millisecondsTimeout)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.TryEnterReadLock(action, millisecondsTimeout);
+  }
+
+  public T2 TryEnterReadLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.TryEnterReadLock(action, millisecondsTimeout);
+  }
+
+  public void TryEnterReadWriteLock<T>(T lockKey, Action action, int millisecondsTimeout)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    lockObject.TryEnterReadWriteLock(action, millisecondsTimeout);
+  }
+
+  public T2 TryEnterReadWriteLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout)
+    where T : notnull
+  {
+    var lockObject = TryCreateLock(lockKey);
+    return lockObject.TryEnterReadWriteLock(action, millisecondsTimeout);
+  }
+
+  private IThreadSafeLock TryCreateLock(object lockKey)
+  {
+    var @lock = EnterReadLock(() =>
     {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.EnterReadLock(action);
+      if (_locks.TryGetValue(lockKey, out var lock1))
+      {
+        return lock1;
+      }
+
+      return null;
+    });
+
+    if (@lock is null)
+    {
+      // for some safety on generating locks, we'll want to lock on creating a key for the first time
+      return EnterReadWriteLock(() =>
+      {
+        _locks[lockKey] = new ThreadSafeLock();
+        return _locks[lockKey];
+      });
     }
 
-    public T2 EnterReadLock<T, T2>(T lockKey, Func<T2> action) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.EnterReadLock(action);
-    }
-
-    public void EnterReadWriteLock<T>(T lockKey, Action action) where T: notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.EnterReadWriteLock(action);
-    }
-
-    public T2 EnterReadWriteLock<T, T2>(T lockKey, Func<T2> action) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.EnterReadWriteLock(action);
-    }
-
-    public void EnterUpgradeableReadLock<T>(T lockKey, Action action) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.EnterUpgradeableReadLock(action);
-    }
-
-    public T2 EnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.EnterUpgradeableReadLock(action);
-    }
-
-    public void TryEnterUpgradeableReadLock<T>(T lockKey, Action action, TimeSpan timeSpan) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.TryEnterUpgradeableReadLock(action, timeSpan);
-    }
-
-    public T2 TryEnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action, TimeSpan timeSpan) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.TryEnterUpgradeableReadLock(action, timeSpan);
-    }
-
-    public void TryEnterUpgradeableReadLock<T>(T lockKey, Action action, int millisecondsTimeout) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.TryEnterUpgradeableReadLock(action, millisecondsTimeout);
-    }
-
-    public T2 TryEnterUpgradeableReadLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.TryEnterUpgradeableReadLock(action, millisecondsTimeout);
-    }
-
-    public void TryEnterReadLock<T>(T lockKey, Action action, TimeSpan tryTimeSpan) where T: notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.TryEnterReadLock(action, tryTimeSpan);
-    }
-
-    public T2 TryEnterReadLock<T, T2>(T lockKey, Func<T2> action, TimeSpan tryTimeSpan) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.TryEnterReadLock(action, tryTimeSpan);
-    }
-
-    public void TryEnterReadWriteLock<T>(T lockKey, Action action, TimeSpan tryTimeSpan) where T: notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.TryEnterReadWriteLock(action, tryTimeSpan);
-    }
-
-    public T2 TryEnterReadWriteLock<T, T2>(T lockKey, Func<T2> action, TimeSpan tryTimeSpan) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.TryEnterReadWriteLock(action, tryTimeSpan);
-    }
-
-    public void TryEnterReadLock<T>(T lockKey, Action action, int millisecondsTimeout) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.TryEnterReadLock(action, millisecondsTimeout);
-    }
-
-    public T2 TryEnterReadLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.TryEnterReadLock(action, millisecondsTimeout);
-    }
-
-    public void TryEnterReadWriteLock<T>(T lockKey, Action action, int millisecondsTimeout) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        lockObject.TryEnterReadWriteLock(action, millisecondsTimeout);
-    }
-
-    public T2 TryEnterReadWriteLock<T, T2>(T lockKey, Func<T2> action, int millisecondsTimeout) where T : notnull
-    {
-        var lockObject = TryCreateLock(lockKey);
-        return lockObject.TryEnterReadWriteLock(action, millisecondsTimeout);
-    }
-
-    private IThreadSafeLock TryCreateLock(object lockKey)
-    {
-        var @lock = EnterReadLock(() =>
-        {
-            if (_locks.TryGetValue(lockKey, out var lock1))
-            {
-                return lock1;
-            }
-
-            return null;
-        });
-
-        if (@lock is null)
-        {
-            // for some safety on generating locks, we'll want to lock on creating a key for the first time
-            return EnterReadWriteLock(() =>
-            {
-                _locks[lockKey] = new ThreadSafeLock();
-                return _locks[lockKey];
-            });
-        }
-
-        return @lock;
-    }
+    return @lock;
+  }
 }

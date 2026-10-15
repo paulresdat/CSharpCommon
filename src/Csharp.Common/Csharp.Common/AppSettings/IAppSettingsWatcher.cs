@@ -6,9 +6,10 @@ namespace Csharp.Common.AppSettings;
 /// concrete.  99% of the time, you will not need this.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IAppSettingsWatcherBase<out T> where T : class
+public interface IAppSettingsWatcherBase<out T>
+  where T : class
 {
-    T Settings { get; }
+  T Settings { get; }
 }
 
 /// <summary>
@@ -26,10 +27,10 @@ public interface IAppSettingsWatcherBase<out T> where T : class
 /// <code>
 /// public interface IMyAppSettingsWatcher : IAppSettingsWatcher{MySettings} { }
 /// public class MyAppSettingsWatcher : AppSettingsWatcher{MySettings}, IMyAppSettingsWatcher { ... }
-/// 
+///
 /// ... // now you can register it with an interface
 /// services.AddSingleton{IMyAppSettingsWatcher, MyAppSettingsWatcher}();
-/// 
+///
 /// ... // now you can mock it in your unit tests
 /// Mock{IMyAppSettingsWatcher}(m => {
 ///   m.SetupGet(x => x.Settings)
@@ -38,7 +39,8 @@ public interface IAppSettingsWatcherBase<out T> where T : class
 /// </code>
 /// </example>
 /// <typeparam name="T"></typeparam>
-public interface IAppSettingsWatcher<out T> : IAppSettingsWatcherBase<T> where T: class, new()
+public interface IAppSettingsWatcher<out T> : IAppSettingsWatcherBase<T>
+  where T : class, new()
 {
-    event Action<T>? OnChange;
+  event Action<T>? OnChange;
 }

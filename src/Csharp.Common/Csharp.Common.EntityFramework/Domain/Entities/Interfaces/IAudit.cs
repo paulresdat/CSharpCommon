@@ -16,8 +16,8 @@ namespace Csharp.Common.EntityFramework.Domain.Entities.Interfaces;
 /// </summary>
 public interface IAudit
 {
-    DateTime CreatedDate { get; set; }
-    string CreatedBy { get; set; }
-    DateTime UpdatedDate { get; set; }
-    string UpdatedBy { get; set; }
+  DateTime CreatedDate { get; set; }
+  string CreatedBy { get; set; }
+  DateTime UpdatedDate { get; set; }
+  string UpdatedBy { get; set; }
 }

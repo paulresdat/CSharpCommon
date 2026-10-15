@@ -7,8 +7,10 @@ public interface ITransientService { }
 
 public interface ITransientServiceProvider
 {
-    T? GetTransient<T>() where T : ITransientService;
-    T GetRequiredTransient<T>() where T : ITransientService;
+  T? GetTransient<T>()
+    where T : ITransientService;
+  T GetRequiredTransient<T>()
+    where T : ITransientService;
 }
 
 /// <summary>
@@ -29,7 +31,7 @@ public interface ITransientServiceProvider
 /// {
 ///   ... properties ...
 /// }
-/// 
+///
 /// // register the singleton
 /// ServiceCollection.AddSingleton&lt;ITransientServiceProvider, TransientServiceProvider&gt;();
 ///
@@ -43,23 +45,25 @@ public interface ITransientServiceProvider
 /// </summary>
 public class TransientServiceProvider : ITransientServiceProvider
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+  private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public TransientServiceProvider(IServiceScopeFactory serviceScopeFactory)
-    {
-        _serviceScopeFactory = serviceScopeFactory;
-    }
+  public TransientServiceProvider(IServiceScopeFactory serviceScopeFactory)
+  {
+    _serviceScopeFactory = serviceScopeFactory;
+  }
 
-    public T? GetTransient<T>() where T : ITransientService
-    {
-        var scopedServiceProvider = _serviceScopeFactory.CreateScope();
-        return scopedServiceProvider.ServiceProvider.GetService<T>();
-    }
+  public T? GetTransient<T>()
+    where T : ITransientService
+  {
+    var scopedServiceProvider = _serviceScopeFactory.CreateScope();
+    return scopedServiceProvider.ServiceProvider.GetService<T>();
+  }
 
-    public T GetRequiredTransient<T>() where T : ITransientService
-    {
-        // do NOT use the using statement in case the transient fetched has the IDisposable interface
-        var scopedServiceProvider = _serviceScopeFactory.CreateScope();
-        return scopedServiceProvider.ServiceProvider.GetRequiredService<T>();
-    }
+  public T GetRequiredTransient<T>()
+    where T : ITransientService
+  {
+    // do NOT use the using statement in case the transient fetched has the IDisposable interface
+    var scopedServiceProvider = _serviceScopeFactory.CreateScope();
+    return scopedServiceProvider.ServiceProvider.GetRequiredService<T>();
+  }
 }

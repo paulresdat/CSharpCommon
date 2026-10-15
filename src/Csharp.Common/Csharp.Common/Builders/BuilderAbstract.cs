@@ -9,8 +9,8 @@ namespace Csharp.Common.Builders;
 /// </summary>
 public interface IBuilder
 {
-    object BlindBuild();
-    void SetDefaults();
+  object BlindBuild();
+  void SetDefaults();
 }
 
 /// <summary>
@@ -20,179 +20,183 @@ public interface IBuilder
 /// <typeparam name="TModel"></typeparam>
 /// <typeparam name="TParentBuilder"></typeparam>
 public abstract class BuilderAbstract<TModel, TParentBuilder>
-    where TModel : class, new() 
-    where TParentBuilder : BuilderAbstract<TModel, TParentBuilder>, new()
+  where TModel : class, new()
+  where TParentBuilder : BuilderAbstract<TModel, TParentBuilder>, new()
 {
-    private List<BuildAction> BuildActions { get; } = new();
+  private List<BuildAction> BuildActions { get; } = new();
 
-    private Func<TModel>? ExistingFunction { get; set; }
+  private Func<TModel>? ExistingFunction { get; set; }
 
-    /// <summary>
-    /// TODO - add documentation
-    /// This is a lesser used method and needs to be documented for specific use cases
-    /// </summary>
-    /// <returns>The TModel concrete of the builder</returns>
-    public object BlindBuild()
+  /// <summary>
+  /// TODO - add documentation
+  /// This is a lesser used method and needs to be documented for specific use cases
+  /// </summary>
+  /// <returns>The TModel concrete of the builder</returns>
+  public object BlindBuild()
+  {
+    return Build();
+  }
+
+  /// <summary>
+  /// TODO - add documentation
+  /// This is a lesser used method and needs to be documented for specific use cases
+  /// </summary>
+  public void SetDefaults()
+  {
+    WithDefaults();
+  }
+
+  /// <summary>
+  /// The Build() method is the point at which the model is actually created by use of a special cast.
+  /// Refer to the implicit operator TModel for implementation details.
+  /// </summary>
+  /// <returns></returns>
+  public TModel Build()
+  {
+    return (TModel)this;
+  }
+
+  /// <summary>
+  /// This is a very important abstract function that all builders must override and implement.  It allows you to
+  /// setup a default construction of an object before populating it with values that are required to change. Used
+  /// extensively in unit testing.
+  /// </summary>
+  /// <returns></returns>
+  public abstract TParentBuilder WithDefaults();
+
+  /// <summary>
+  /// <para>
+  /// This is the method that allows you to populate data using explicit method calls on your parent builder.  You use
+  /// this when defining new methods that describe the action on the model in the context of the builder.
+  /// </para>
+  /// <para>
+  /// A way to think about this is that this method is the magic behind the builder besides the implicit static cast
+  /// operator.  This is the heart of the builder that allows you to describe the actions upon the data object the
+  /// builder is responsible for.  Ie: <c>WithFirstName(string firstName)</c> is the method that describes the action and then
+  /// <c>With(x => x.FirstName = firstName)</c> is the implementation that performs an action on the model.
+  /// </para>
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// public MyBuilder WithFirstName(string firstName)
+  /// {
+  ///   With(x => x.FirstName = firstName);
+  /// }
+  /// </code>
+  /// </example>
+  /// <param name="action"></param>
+  /// <returns></returns>
+  public TParentBuilder With(Action<TModel> action)
+  {
+    BuildActions.Add(new BuildAction { Action = action });
+
+    return (TParentBuilder)this;
+  }
+
+  /// <summary>
+  /// <para>
+  /// This is the part of the builder that allows for an implicit cast operation using generic types that are
+  /// defined when creating the builder.  When you create a new builder of type `TModel`, this cast allows for the
+  /// `TModel` type to be instantiated and then to roll through each action placed on the object (in turn of invocation)
+  /// such that the returned object after cast is the concrete type with all the actions defined in the fluency
+  /// pattern applied to the object before returning.  In other words: this gets you the object that you defined
+  /// in the code.
+  /// </para>
+  /// </summary>
+  /// <param name="b"></param>
+  /// <returns></returns>
+  public static implicit operator TModel(BuilderAbstract<TModel, TParentBuilder> b)
+  {
+    var built = BuildModel(b);
+
+    // clear out the actions
+    b.BuildActions.Clear();
+
+    // return the concrete type
+    return built;
+  }
+
+  private static TModel BuildModel(BuilderAbstract<TModel, TParentBuilder> b)
+  {
+    // invoke the creation of the object
+    TModel built = b.ExistingFunction?.Invoke() ?? b.Convert();
+
+    // roll through the actions that were applied to the object
+    foreach (var buildAction in b.BuildActions)
     {
-        return Build();
+      buildAction.Action?.Invoke(built);
     }
 
-    /// <summary>
-    /// TODO - add documentation
-    /// This is a lesser used method and needs to be documented for specific use cases
-    /// </summary>
-    public void SetDefaults()
+    return built;
+  }
+
+  /// <summary>
+  /// This returns an actual instance of the object
+  ///
+  /// TODO - analyze the new() type as a constraint
+  /// </summary>
+  /// <returns></returns>
+  private TModel Convert()
+  {
+    return Activator.CreateInstance<TModel>();
+  }
+
+  /// <summary>
+  /// This defines the private data type of actions the builder is aware of
+  /// </summary>
+  private class BuildAction
+  {
+    // public string? BuildTitle { get; set; }
+    public Action<TModel>? Action { get; set; }
+  }
+
+  #region custom attribute value functionality
+  public TParentBuilder Validate()
+  {
+    LoadCustomAttributesByPropertyName();
+    var props = typeof(TModel).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+    // build a superficial object to validate against, do not return it
+    // TODO - may be good to cache the result and have build return the cached result instead?
+    // Don't optimize unless you have to in this case I think.
+    var m = BuildModel(this);
+    foreach (var prop in props)
     {
-        WithDefaults();
-    }
-
-    /// <summary>
-    /// The Build() method is the point at which the model is actually created by use of a special cast.
-    /// Refer to the implicit operator TModel for implementation details.
-    /// </summary>
-    /// <returns></returns>
-    public TModel Build()
-    {
-        return (TModel) this;
-    }
-
-    /// <summary>
-    /// This is a very important abstract function that all builders must override and implement.  It allows you to
-    /// setup a default construction of an object before populating it with values that are required to change. Used
-    /// extensively in unit testing.
-    /// </summary>
-    /// <returns></returns>
-    public abstract TParentBuilder WithDefaults();
-
-    /// <summary>
-    /// <para>
-    /// This is the method that allows you to populate data using explicit method calls on your parent builder.  You use
-    /// this when defining new methods that describe the action on the model in the context of the builder.
-    /// </para>
-    /// <para>
-    /// A way to think about this is that this method is the magic behind the builder besides the implicit static cast
-    /// operator.  This is the heart of the builder that allows you to describe the actions upon the data object the
-    /// builder is responsible for.  Ie: <c>WithFirstName(string firstName)</c> is the method that describes the action and then
-    /// <c>With(x => x.FirstName = firstName)</c> is the implementation that performs an action on the model.
-    /// </para>
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// public MyBuilder WithFirstName(string firstName)
-    /// {
-    ///   With(x => x.FirstName = firstName);
-    /// }
-    /// </code>
-    /// </example>
-    /// <param name="action"></param>
-    /// <returns></returns>
-    public TParentBuilder With(Action<TModel> action)
-    {
-        BuildActions.Add(new BuildAction {
-            Action = action
-        });
-
-        return (TParentBuilder) this;
-    }
-
-    /// <summary>
-    /// <para>
-    /// This is the part of the builder that allows for an implicit cast operation using generic types that are
-    /// defined when creating the builder.  When you create a new builder of type `TModel`, this cast allows for the
-    /// `TModel` type to be instantiated and then to roll through each action placed on the object (in turn of invocation)
-    /// such that the returned object after cast is the concrete type with all the actions defined in the fluency
-    /// pattern applied to the object before returning.  In other words: this gets you the object that you defined
-    /// in the code.
-    /// </para>
-    /// </summary>
-    /// <param name="b"></param>
-    /// <returns></returns>
-    public static implicit operator TModel(BuilderAbstract<TModel, TParentBuilder> b)
-    {
-        var built = BuildModel(b);
-
-        // clear out the actions
-        b.BuildActions.Clear();
-
-        // return the concrete type
-        return built;
-    }
-
-    private static TModel BuildModel(BuilderAbstract<TModel, TParentBuilder> b)
-    {
-        // invoke the creation of the object
-        TModel built = b.ExistingFunction?.Invoke() ?? b.Convert();
-
-        // roll through the actions that were applied to the object
-        foreach (var buildAction in b.BuildActions)
+      if (_validatorAttributes.TryGetValue(prop.Name, out var validators))
+      {
+        foreach (var validator in validators)
         {
-            buildAction.Action?.Invoke(built);
+          ValidateAgainst(prop, m, ((ValidationAttribute)validator));
         }
+      }
+    }
+    return (TParentBuilder)this;
+  }
 
-        return built;
-    }
+  private readonly Dictionary<string, IList<Attribute>> _validatorAttributes = new();
 
-    /// <summary>
-    /// This returns an actual instance of the object
-    ///
-    /// TODO - analyze the new() type as a constraint
-    /// </summary>
-    /// <returns></returns>
-    private TModel Convert()
+  private void LoadCustomAttributesByPropertyName()
+  {
+    _validatorAttributes.Clear();
+    var dictionary = typeof(TModel)
+      .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+      .ToDictionary(
+        x => x.Name,
+        x =>
+          x.GetCustomAttributes()
+            .Where(y => y.GetType().IsAssignableTo(typeof(ValidationAttribute)))
+      );
+    foreach (var kv in dictionary)
     {
-        return Activator.CreateInstance<TModel>();
+      _validatorAttributes.Add(kv.Key, kv.Value.ToList());
     }
+  }
 
-    /// <summary>
-    /// This defines the private data type of actions the builder is aware of
-    /// </summary>
-    private class BuildAction
+  private void ValidateAgainst(PropertyInfo prop, TModel m, ValidationAttribute attr)
+  {
+    if (!attr.IsValid(prop.GetValue(m)))
     {
-        // public string? BuildTitle { get; set; }
-        public Action<TModel>? Action { get; set; }
+      throw new BuilderException("Validation for property '" + prop.Name + "' failed");
     }
-    
-    #region custom attribute value functionality
-    public TParentBuilder Validate()
-    {
-        LoadCustomAttributesByPropertyName();
-        var props = typeof(TModel).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        // build a superficial object to validate against, do not return it
-        // TODO - may be good to cache the result and have build return the cached result instead?
-        // Don't optimize unless you have to in this case I think.
-        var m = BuildModel(this);
-        foreach (var prop in props)
-        {
-            if (_validatorAttributes.TryGetValue(prop.Name, out var validators))
-            {
-                foreach (var validator in validators)
-                {
-                    ValidateAgainst(prop, m, ((ValidationAttribute) validator));
-                }
-            }
-        }
-        return (TParentBuilder)this;
-    }
-
-    private readonly Dictionary<string, IList<Attribute>> _validatorAttributes = new();
-    private void LoadCustomAttributesByPropertyName()
-    {
-        _validatorAttributes.Clear();
-        var dictionary = typeof(TModel).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .ToDictionary(x => x.Name,
-                x => x.GetCustomAttributes().Where(y => y.GetType().IsAssignableTo(typeof(ValidationAttribute))));
-        foreach (var kv in dictionary)
-        {
-            _validatorAttributes.Add(kv.Key, kv.Value.ToList());
-        }
-    }
-
-    private void ValidateAgainst(PropertyInfo prop, TModel m, ValidationAttribute attr)
-    {
-        if (!attr.IsValid(prop.GetValue(m)))
-        {
-            throw new BuilderException("Validation for property '" + prop.Name + "' failed");
-        }
-    }
-    #endregion
+  }
+  #endregion
 }

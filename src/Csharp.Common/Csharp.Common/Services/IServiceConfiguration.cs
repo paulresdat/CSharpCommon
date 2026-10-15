@@ -8,14 +8,15 @@ namespace Csharp.Common.Services;
 /// </summary>
 public interface IServiceConfiguration
 {
-    /// <summary>
-    /// TODO - add documentation (see concrete) needs examples of use
-    /// </summary>
-    /// <param name="configurationBuilder"></param>
-    void SetAppSettingsBuilder(IServiceCollectionBuilderConfiguration? configurationBuilder);
-    /// <summary>
-    /// TODO - add documentation (see concrete) needs examples of use
-    /// </summary>
-    /// <param name="serviceCollection"></param>
-    void ConfigureServices(IServiceCollection serviceCollection);
+  /// <summary>
+  /// TODO - add documentation (see concrete) needs examples of use
+  /// </summary>
+  /// <param name="configurationBuilder"></param>
+  void SetAppSettingsBuilder(IServiceCollectionBuilderConfiguration? configurationBuilder);
+
+  /// <summary>
+  /// TODO - add documentation (see concrete) needs examples of use
+  /// </summary>
+  /// <param name="serviceCollection"></param>
+  void ConfigureServices(IServiceCollection serviceCollection);
 }

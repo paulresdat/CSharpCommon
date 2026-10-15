@@ -1,6 +1,3 @@
 namespace Csharp.Common.Services;
 
-public interface IServiceCollectionBuilderConfiguration
-{
-    
-}
+public interface IServiceCollectionBuilderConfiguration { }

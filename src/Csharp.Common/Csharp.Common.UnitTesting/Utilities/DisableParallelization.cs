@@ -27,7 +27,4 @@ namespace Csharp.Common.UnitTesting.Utilities;
 /// </code>
 /// </summary>
 [CollectionDefinition(nameof(DisableParallelization), DisableParallelization = true)]
-public class DisableParallelization
-{
-
-}
+public class DisableParallelization { }

@@ -23,34 +23,37 @@ namespace Csharp.Common.Db;
 
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<CsharpCommonTestingDbContext>
 {
-    public CsharpCommonTestingDbContext CreateDbContext(string[] args)
-    {
-        var configuration = GetConfiguration();
-        var serviceCollection = new ServiceCollection();
-        serviceCollection.AddOptions();
-        serviceCollection.Configure<DbOptions>(configuration.GetSection("DbContextOptions"));
-        serviceCollection.AddDbContext<CsharpCommonTestingDbContext>();
+  public CsharpCommonTestingDbContext CreateDbContext(string[] args)
+  {
+    var configuration = GetConfiguration();
+    var serviceCollection = new ServiceCollection();
+    serviceCollection.AddOptions();
+    serviceCollection.Configure<DbOptions>(configuration.GetSection("DbContextOptions"));
+    serviceCollection.AddDbContext<CsharpCommonTestingDbContext>();
 
-        var provider = serviceCollection.BuildServiceProvider();
-        return provider.GetRequiredService<CsharpCommonTestingDbContext>();
-    }
+    var provider = serviceCollection.BuildServiceProvider();
+    return provider.GetRequiredService<CsharpCommonTestingDbContext>();
+  }
 
-    public static IConfigurationRoot GetConfiguration()
-    {
-        // bring in configuration manager
-        var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.db-test.json", optional: false, reloadOnChange: true)
-            .AddUserSecrets<CsharpCommonTestingDbContext>();
+  public static IConfigurationRoot GetConfiguration()
+  {
+    // bring in configuration manager
+    var builder = new ConfigurationBuilder()
+      .SetBasePath(Directory.GetCurrentDirectory())
+      .AddJsonFile("appsettings.db-test.json", optional: false, reloadOnChange: true)
+      .AddUserSecrets<CsharpCommonTestingDbContext>();
 
-        var configuration = builder.Build();
-        Console.WriteLine("Running migrations on: " + configuration.GetValue<string>("DbContextOptions:ConnectionStrings:DbContext"));
-        // var serviceCollection = new ServiceCollection();
-        // serviceCollection.AddOptions();
-        // serviceCollection.Configure<RtkRoutingDbContextOptions>(configuration.GetSection("DbContextOptions"));
-        // var options = serviceCollection.BuildServiceProvider()
-        //     .GetRequiredService<IOptions<RtkRoutingDbContextOptions>>();
-        // Console.WriteLine("Option value: " + options.Value.ConnectionStrings.DbContext);
-        return configuration;
-    }
+    var configuration = builder.Build();
+    // Console.WriteLine(
+    //   "Running migrations on: "
+    //     + configuration.GetValue<string>("DbContextOptions:ConnectionStrings:DbContext")
+    // );
+    // var serviceCollection = new ServiceCollection();
+    // serviceCollection.AddOptions();
+    // serviceCollection.Configure<RtkRoutingDbContextOptions>(configuration.GetSection("DbContextOptions"));
+    // var options = serviceCollection.BuildServiceProvider()
+    //     .GetRequiredService<IOptions<RtkRoutingDbContextOptions>>();
+    // Console.WriteLine("Option value: " + options.Value.ConnectionStrings.DbContext);
+    return configuration;
+  }
 }

@@ -40,12 +40,12 @@ namespace Csharp.Common.Services;
 ///         // Ioptions section
 ///         serviceCollection.Configure{MySettings}(configuration.MySettings);
 ///     }
-/// 
+///
 ///     protected override void ConfigureServiceCollection(IServiceCollection serviceCollection)
 ///     {
 ///         serviceCollection.AddSingleton{IMyObject, MyObject}();
 ///     }
-/// 
+///
 ///     protected override void InjectNlog(IServiceCollection serviceCollection)
 ///     {
 ///         serviceCollection.AddLogging(loggingBuilder =>
@@ -60,94 +60,103 @@ namespace Csharp.Common.Services;
 /// </example>
 public abstract class ServiceConfiguration
 {
-    protected IServiceCollectionBuilderConfiguration? ConfigurationBuilder { get; set; }
+  protected IServiceCollectionBuilderConfiguration? ConfigurationBuilder { get; set; }
 
-    protected void Configure(Action<IServiceCollectionBuilderConfiguration?> action)
-    {
-        action(ConfigurationBuilder);
-    }
+  protected void Configure(Action<IServiceCollectionBuilderConfiguration?> action)
+  {
+    action(ConfigurationBuilder);
+  }
 
-    protected T GetConfiguration<T>() => (T) (ConfigurationBuilder ?? throw new InvalidOperationException());
-    protected T? GetNullableConfiguration<T>() => (T?) ConfigurationBuilder;
+  protected T GetConfiguration<T>() =>
+    (T)(ConfigurationBuilder ?? throw new InvalidOperationException());
 
-    public void SetAppSettingsBuilder(IServiceCollectionBuilderConfiguration? configurationBuilder)
-    {
-        ConfigurationBuilder = configurationBuilder;
-    }
+  protected T? GetNullableConfiguration<T>() => (T?)ConfigurationBuilder;
 
-    public void ConfigureServices(IServiceCollection serviceCollection)
-    {
-        // enforcing here, makes it easier
-        serviceCollection.AddLogging();
-        serviceCollection.AddOptions();
-        AddConfigurations(serviceCollection);
-        ConfigureServiceCollection(serviceCollection);
-        PostConfiguration(serviceCollection);
-        RunBootstrappedAutomapperConfigurations(serviceCollection);
-    }
-    
-    protected abstract void AddConfigurations(IServiceCollection serviceCollection);
-    protected abstract void ConfigureServiceCollection(IServiceCollection serviceCollection);
-    protected abstract void PostConfiguration(IServiceCollection serviceCollection);
+  public void SetAppSettingsBuilder(IServiceCollectionBuilderConfiguration? configurationBuilder)
+  {
+    ConfigurationBuilder = configurationBuilder;
+  }
 
-    /// <summary>
-    /// Instance level
-    /// </summary>
-    /// <param name="serviceCollection"></param>
-    /// <param name="builderConfiguration"></param>
-    /// <returns></returns>
-    public void Register(IServiceCollection serviceCollection,
-        IServiceCollectionBuilderConfiguration builderConfiguration)
-    {
-        SetAppSettingsBuilder(builderConfiguration);
-        ConfigureServices(serviceCollection);
-    }
+  public void ConfigureServices(IServiceCollection serviceCollection)
+  {
+    // enforcing here, makes it easier
+    serviceCollection.AddLogging();
+    serviceCollection.AddOptions();
+    AddConfigurations(serviceCollection);
+    ConfigureServiceCollection(serviceCollection);
+    PostConfiguration(serviceCollection);
+    RunBootstrappedAutomapperConfigurations(serviceCollection);
+  }
 
-    private List<Action<IMapperConfigurationExpression>> MappingConfigurations { get; set; } = new();
+  protected abstract void AddConfigurations(IServiceCollection serviceCollection);
+  protected abstract void ConfigureServiceCollection(IServiceCollection serviceCollection);
+  protected abstract void PostConfiguration(IServiceCollection serviceCollection);
 
-    protected void AddAutoMapper(Action<IMapperConfigurationExpression> profileAction)
-    {
-        MappingConfigurations.Add(profileAction);
-    }
+  /// <summary>
+  /// Instance level
+  /// </summary>
+  /// <param name="serviceCollection"></param>
+  /// <param name="builderConfiguration"></param>
+  /// <returns></returns>
+  public void Register(
+    IServiceCollection serviceCollection,
+    IServiceCollectionBuilderConfiguration builderConfiguration
+  )
+  {
+    SetAppSettingsBuilder(builderConfiguration);
+    ConfigureServices(serviceCollection);
+  }
 
-    private void RunBootstrappedAutomapperConfigurations(IServiceCollection serviceCollection)
-    {
-        var mapper = new MapperConfiguration(cfg =>
+  private List<Action<IMapperConfigurationExpression>> MappingConfigurations { get; set; } = new();
+
+  protected void AddAutoMapper(Action<IMapperConfigurationExpression> profileAction)
+  {
+    MappingConfigurations.Add(profileAction);
+  }
+
+  private void RunBootstrappedAutomapperConfigurations(IServiceCollection serviceCollection)
+  {
+    var mapper = new MapperConfiguration(
+      cfg =>
+      {
+        foreach (var config in MappingConfigurations)
         {
-            foreach (var config in MappingConfigurations)
-            {
-                config(cfg);
-            }
-        }, NullLoggerFactory.Instance);
-        serviceCollection.AddSingleton(mapper);
-        serviceCollection.AddSingleton(mapper.CreateMapper());
-    }
+          config(cfg);
+        }
+      },
+      NullLoggerFactory.Instance
+    );
+    serviceCollection.AddSingleton(mapper);
+    serviceCollection.AddSingleton(mapper.CreateMapper());
+  }
 }
 
-public abstract class ServiceConfiguration<TParent> : ServiceConfiguration where TParent : IServiceConfiguration
+public abstract class ServiceConfiguration<TParent> : ServiceConfiguration
+  where TParent : IServiceConfiguration
 {
-    private static TParent? PrivateInstance { get; set; }
-    public static TParent Instance
+  private static TParent? PrivateInstance { get; set; }
+  public static TParent Instance
+  {
+    get
     {
-        get
-        {
-            if (PrivateInstance != null)
-            {
-                return PrivateInstance;
-            }
-            var parent = Activator.CreateInstance<TParent>();
-            return parent;
-        }
-    }
-
-    public static IServiceConfiguration RegisterBaseServices(
-        IServiceCollection serviceCollection,
-        IServiceCollectionBuilderConfiguration builderConfiguration)
-    {
-        var instance = Activator.CreateInstance<TParent>();
-        PrivateInstance = instance;
-        instance.SetAppSettingsBuilder(builderConfiguration);
-        instance.ConfigureServices(serviceCollection);
+      if (PrivateInstance != null)
+      {
         return PrivateInstance;
+      }
+      var parent = Activator.CreateInstance<TParent>();
+      return parent;
     }
+  }
+
+  public static IServiceConfiguration RegisterBaseServices(
+    IServiceCollection serviceCollection,
+    IServiceCollectionBuilderConfiguration builderConfiguration
+  )
+  {
+    var instance = Activator.CreateInstance<TParent>();
+    PrivateInstance = instance;
+    instance.SetAppSettingsBuilder(builderConfiguration);
+    instance.ConfigureServices(serviceCollection);
+    return PrivateInstance;
+  }
 }
