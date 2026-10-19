@@ -114,7 +114,7 @@ public abstract class DbIntegrationTest<TIDbContext, TDbContext, TConfigurationC
         (TConfigurationContext)
           Activator.CreateInstance(
             typeof(TConfigurationContext),
-            args: new object[] { configuration }
+            args: [configuration]
           )!
         ?? throw new InvalidOperationException();
     }

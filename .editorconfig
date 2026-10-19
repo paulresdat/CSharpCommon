@@ -59,6 +59,9 @@ dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = priva
 dotnet_naming_style.private_field_prefix_style.required_prefix = _
 dotnet_naming_style.private_field_prefix_style.capitalization = camel_case
 
+[**/Migrations/*.cs]
+dotnet_diagnostic.IDE0160.severity = none
+
 [*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css,scss,html,yml,yaml,md}]
 indent_size = 2
 max_line_length = off

@@ -166,11 +166,9 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
     try
     {
       Logger.LogTrace("Running query for: {MethodName}", methodName);
-      using (var scope = _serviceScopeFactory.CreateScope())
-      {
-        var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
-        return queryToRun(dbContext);
-      }
+      using var scope = _serviceScopeFactory.CreateScope();
+      var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+      return queryToRun(dbContext);
     }
     catch (Exception exc) when (exc.InnerException is SqlException || exc is SqlException)
     {
@@ -191,11 +189,9 @@ public abstract class RepositoryBase<TParentRepository, TDbContext>
 
         try
         {
-          using (var scope = _serviceScopeFactory.CreateScope())
-          {
-            var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
-            return queryToRun(dbContext);
-          }
+          using var scope = _serviceScopeFactory.CreateScope();
+          var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+          return queryToRun(dbContext);
         }
         catch (Exception ex)
         {

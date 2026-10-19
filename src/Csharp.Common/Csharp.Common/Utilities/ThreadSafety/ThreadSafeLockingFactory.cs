@@ -89,7 +89,7 @@ public interface IThreadSafeLockingFactory
 /// </summary>
 public class ThreadSafeLockingFactory : ThreadSafe, IThreadSafeLockingFactory
 {
-  private readonly Dictionary<object, IThreadSafeLock> _locks = new();
+  private readonly Dictionary<object, IThreadSafeLock> _locks = [];
 
   public void EnterReadLock<T>(T lockKey, Action action)
     where T : notnull

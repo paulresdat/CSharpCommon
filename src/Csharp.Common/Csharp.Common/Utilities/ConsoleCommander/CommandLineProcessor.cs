@@ -31,9 +31,9 @@ public class CommandLineProcessor : ICommandLineProcessor
     }
   }
 
-  private readonly List<string> _history = new();
+  private readonly List<string> _history = [];
   private string Prompt { get; set; } = "$> ";
-  private readonly List<char> _currentCharacterList = new();
+  private readonly List<char> _currentCharacterList = [];
   private int ArrowLeftCount { get; set; } = 0;
   private int SpliceIdx { get; set; } = 0;
   private readonly CurrentCursorPosition _currentCursorPosition = new();

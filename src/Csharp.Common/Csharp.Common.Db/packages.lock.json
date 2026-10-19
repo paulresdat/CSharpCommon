@@ -407,6 +407,11 @@
         "resolved": "4.4.0",
         "contentHash": "2sCCb7doXEwtYAbqzbF/8UAeDRMNmPaQbU2q50Psg1J9KzumyVVCgKQY8s53WIPTufNT0DpSe9QRvVjOzfDWBA=="
       },
+      "System.CommandLine": {
+        "type": "Transitive",
+        "resolved": "2.0.12",
+        "contentHash": "FpW672e6qqrTd1EfKqsvUtFZaJWlTlszUR1o8tdakXhkzKbnEZVndtpfd4K3fUPCFcIs9UmcswMyYGJP1zp/rg=="
+      },
       "System.Composition": {
         "type": "Transitive",
         "resolved": "6.0.0",
@@ -495,7 +500,8 @@
           "Microsoft.Extensions.Configuration": "[10.0.7, )",
           "Microsoft.Extensions.Logging": "[10.0.7, )",
           "Microsoft.Extensions.Options.ConfigurationExtensions": "[10.0.7, )",
-          "Spectre.Console": "[0.55.2, )"
+          "Spectre.Console": "[0.55.2, )",
+          "System.CommandLine": "[2.0.12, )"
         }
       },
       "csharp.common.entityframework": {

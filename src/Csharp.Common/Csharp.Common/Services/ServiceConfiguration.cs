@@ -107,7 +107,7 @@ public abstract class ServiceConfiguration
     ConfigureServices(serviceCollection);
   }
 
-  private List<Action<IMapperConfigurationExpression>> MappingConfigurations { get; set; } = new();
+  private List<Action<IMapperConfigurationExpression>> MappingConfigurations { get; set; } = [];
 
   protected void AddAutoMapper(Action<IMapperConfigurationExpression> profileAction)
   {

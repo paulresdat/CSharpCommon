@@ -83,18 +83,16 @@ public class AppSettingsTests : BaseUnitTest
     var oldFile = new List<string>();
     using (var input = File.OpenText("appsettings.json"))
     {
-      using (var output = new StreamWriter("output.tmp.txt"))
+      using var output = new StreamWriter("output.tmp.txt");
+      string? line;
+      while (null != (line = input.ReadLine()))
       {
-        string? line;
-        while (null != (line = input.ReadLine()))
+        oldFile.Add(line);
+        if (line.Contains("123"))
         {
-          oldFile.Add(line);
-          if (line.Contains("123"))
-          {
-            line = Regex.Replace(line, "123", "789");
-          }
-          output.WriteLine(line);
+          line = Regex.Replace(line, "123", "789");
         }
+        output.WriteLine(line);
       }
     }
 
@@ -138,18 +136,16 @@ public class AppSettingsTests : BaseUnitTest
     var oldFile = new List<string>();
     using (var input = File.OpenText("appsettings.json"))
     {
-      using (var output = new StreamWriter("output.tmp.txt"))
+      using var output = new StreamWriter("output.tmp.txt");
+      string? line;
+      while (null != (line = input.ReadLine()))
       {
-        string? line;
-        while (null != (line = input.ReadLine()))
+        oldFile.Add(line);
+        if (line.Contains("123"))
         {
-          oldFile.Add(line);
-          if (line.Contains("123"))
-          {
-            line = Regex.Replace(line, "123", "789");
-          }
-          output.WriteLine(line);
+          line = Regex.Replace(line, "123", "789");
         }
+        output.WriteLine(line);
       }
     }
 

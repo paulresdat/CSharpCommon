@@ -449,7 +449,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
         }
       }
       var collisionHash = teststring.GetHashCode();
-      matches.Add(collisionHash, new string[] { words[collisionHash], teststring });
+      matches.Add(collisionHash, [words[collisionHash], teststring]);
     }
 
     return matches;

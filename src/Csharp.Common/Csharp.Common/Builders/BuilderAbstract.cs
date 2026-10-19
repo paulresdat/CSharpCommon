@@ -23,7 +23,7 @@ public abstract class BuilderAbstract<TModel, TParentBuilder>
   where TModel : class, new()
   where TParentBuilder : BuilderAbstract<TModel, TParentBuilder>, new()
 {
-  private List<BuildAction> BuildActions { get; } = new();
+  private List<BuildAction> BuildActions { get; } = [];
 
   private Func<TModel>? ExistingFunction { get; set; }
 
@@ -119,7 +119,7 @@ public abstract class BuilderAbstract<TModel, TParentBuilder>
   private static TModel BuildModel(BuilderAbstract<TModel, TParentBuilder> b)
   {
     // invoke the creation of the object
-    TModel built = b.ExistingFunction?.Invoke() ?? b.Convert();
+    var built = b.ExistingFunction?.Invoke() ?? b.Convert();
 
     // roll through the actions that were applied to the object
     foreach (var buildAction in b.BuildActions)
@@ -172,7 +172,7 @@ public abstract class BuilderAbstract<TModel, TParentBuilder>
     return (TParentBuilder)this;
   }
 
-  private readonly Dictionary<string, IList<Attribute>> _validatorAttributes = new();
+  private readonly Dictionary<string, IList<Attribute>> _validatorAttributes = [];
 
   private void LoadCustomAttributesByPropertyName()
   {
@@ -187,7 +187,7 @@ public abstract class BuilderAbstract<TModel, TParentBuilder>
       );
     foreach (var kv in dictionary)
     {
-      _validatorAttributes.Add(kv.Key, kv.Value.ToList());
+      _validatorAttributes.Add(kv.Key, [.. kv.Value]);
     }
   }
 

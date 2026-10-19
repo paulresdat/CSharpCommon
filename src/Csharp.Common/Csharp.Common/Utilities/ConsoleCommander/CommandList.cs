@@ -34,7 +34,7 @@ public interface IConsoleCommandList
 
 public class CommandList : IConsoleCommandList
 {
-  private readonly List<CommandDetail> _commands = new();
+  private readonly List<CommandDetail> _commands = [];
 
   public IConsoleCommandList AddCommand(
     string command,
@@ -147,7 +147,7 @@ public class CommandList : IConsoleCommandList
   {
     get
     {
-      return _commands.Select(x => new string[] { x.Command ?? "", x.Description ?? "" }).ToList();
+      return [.. _commands.Select(x => new string[] { x.Command ?? "", x.Description ?? "" })];
     }
   }
 }

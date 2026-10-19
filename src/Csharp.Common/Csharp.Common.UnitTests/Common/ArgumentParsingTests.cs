@@ -18,7 +18,7 @@ public class ArgumentParsingTests : BaseUnitTest
   {
     var t = new TestArgsWithProps();
 
-    t.ParseArguments(new[] { argument });
+    t.ParseArguments([argument]);
 
     t.Args.Test.Should().BeTrue();
   }
@@ -30,7 +30,7 @@ public class ArgumentParsingTests : BaseUnitTest
   {
     var t = new TestArgsWithProps();
 
-    t.ParseArguments(new[] { argument });
+    t.ParseArguments([argument]);
 
     t.Args.Help.Should().BeTrue();
     t.AskedForHelp.Should().BeTrue();
@@ -41,7 +41,7 @@ public class ArgumentParsingTests : BaseUnitTest
   {
     var t = new TestArgsWithProps();
 
-    var action = () => t.ParseArguments(new[] { "--unknown" });
+    var action = () => t.ParseArguments(["--unknown"]);
 
     action.Should().NotThrow();
     t.Args.Test.Should().BeFalse();
@@ -52,7 +52,7 @@ public class ArgumentParsingTests : BaseUnitTest
   {
     var t = new TestArgsWithProps();
 
-    var action = () => t.ParseArguments(new[] { "--test-int" });
+    var action = () => t.ParseArguments(["--test-int"]);
 
     action.Should().NotThrow();
     t.Args.TestInt.Should().Be(0);
@@ -141,7 +141,7 @@ public class ArgumentParsingTests : BaseUnitTest
   }
 
   [ExcludeFromCodeCoverage]
-  private class TestArgProps : ArgumentParsingDto
+  private record TestArgProps : ArgumentParserDto
   {
     [ArgumentDefinition("t|test", "Testing bool")]
     public bool Test { get; set; }
@@ -172,7 +172,7 @@ public class ArgumentParsingTests : BaseUnitTest
   }
 
   [ExcludeFromCodeCoverage]
-  private class NewType
+  private record NewType
   {
     public int PropOne { get; set; }
     public int PropTwo { get; set; }

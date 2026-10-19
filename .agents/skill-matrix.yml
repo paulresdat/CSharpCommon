@@ -1,0 +1,37 @@
+version: 1
+
+core:
+  - dotnet-library
+  - api-compatibility
+  - dependency-security
+
+skills:
+  dotnet-library:
+    path: skills/dotnet-library/SKILL.md
+    signals:
+      files: ["**/*.csproj", "**/*.sln"]
+    checks:
+      - dotnet restore
+      - dotnet build --no-restore
+
+  api-compatibility:
+    path: skills/api-compatibility/SKILL.md
+    signals:
+      files: ["**/*.cs"]
+
+  dependency-security:
+    path: skills/dependency-security/SKILL.md
+    signals:
+      files: ["**/*.csproj", "**/packages.lock.json"]
+
+  cli-parser:
+    path: skills/cli-parser/SKILL.md
+    signals:
+      packages: ["System.CommandLine"]
+      files: ["**/*Argument*Parsing*.cs"]
+
+  integration-testing:
+    path: skills/integration-testing/SKILL.md
+    signals:
+      packages: ["Microsoft.EntityFrameworkCore"]
+      files: ["**/*IntegrationTests*.csproj", "**/*IntegrationTest*.cs"]
