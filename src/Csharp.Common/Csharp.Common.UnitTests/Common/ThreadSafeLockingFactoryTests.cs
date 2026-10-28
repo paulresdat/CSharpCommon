@@ -302,6 +302,136 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
     LogEntries.Should().Contain(x => x.Message!.Contains("An exception has occurred"));
   }
 
+  [Fact(
+    DisplayName = "008 Try locks that time out throw and never run the action"
+  )]
+  public async Task T008Async()
+  {
+    var threadLock = new ThreadLocker();
+    using var held = new ManualResetEventSlim();
+    using var release = new ManualResetEventSlim();
+
+    var holder = Task.Run(() =>
+      threadLock.EnterReadWriteLock(() =>
+      {
+        held.Set();
+        release.Wait();
+      })
+    );
+    held.Wait();
+
+    var ran = false;
+    var timeSpan = TimeSpan.FromMilliseconds(10);
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      threadLock.TryEnterReadLock(() => ran = true, timeSpan)
+    );
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      threadLock.TryEnterReadLock(() => ran = true, 10)
+    );
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      threadLock.TryEnterReadWriteLock(() => ran = true, timeSpan)
+    );
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      threadLock.TryEnterReadWriteLock(() => ran = true, 10)
+    );
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      threadLock.TryEnterUpgradeableReadLock(() => ran = true, timeSpan)
+    );
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      threadLock.TryEnterUpgradeableReadLock(() => ran = true, 10)
+    );
+
+    release.Set();
+    await holder;
+
+    ran.Should().BeFalse();
+  }
+
+  [Fact(
+    DisplayName = "009 Locking factory try locks that time out throw and never run the action"
+  )]
+  public async Task T009Async()
+  {
+    var sp = GetNewServiceProvider;
+    var locker = sp.GetRequiredService<IThreadSafeLockingFactory>();
+    using var held = new ManualResetEventSlim();
+    using var release = new ManualResetEventSlim();
+
+    var holder = Task.Run(() =>
+      locker.EnterReadWriteLock(
+        "one",
+        () =>
+        {
+          held.Set();
+          release.Wait();
+        }
+      )
+    );
+    held.Wait();
+
+    var ran = false;
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      locker.TryEnterReadLock("one", () => ran = true, 10)
+    );
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      locker.TryEnterReadWriteLock("one", () => ran = true, TimeSpan.FromMilliseconds(10))
+    );
+    Assert.Throws<ThreadSafeLockingFactoryException>(() =>
+      locker.TryEnterUpgradeableReadLock("one", () => ran = true, 10)
+    );
+
+    // a different key is not blocked
+    locker.TryEnterReadWriteLock("two", () => 1, 10).Should().Be(1);
+
+    release.Set();
+    await holder;
+
+    ran.Should().BeFalse();
+  }
+
+  [Fact(
+    DisplayName = "010 Threads racing to use a new key for the first time all share the same lock"
+  )]
+  public void T010()
+  {
+    var sp = GetNewServiceProvider;
+    var locker = sp.GetRequiredService<IThreadSafeLockingFactory>();
+    const int threadCount = 8;
+    using var barrier = new Barrier(threadCount);
+    var inside = 0;
+    var overlaps = 0;
+
+    var threads = Enumerable
+      .Range(0, threadCount)
+      .Select(_ => new Thread(() =>
+      {
+        for (var key = 0; key < 200; key++)
+        {
+          // line every thread up so they all hit a brand new key at the same moment
+          barrier.SignalAndWait();
+          locker.EnterReadWriteLock(
+            key,
+            () =>
+            {
+              if (Interlocked.Increment(ref inside) > 1)
+              {
+                Interlocked.Increment(ref overlaps);
+              }
+
+              Thread.SpinWait(1000);
+              Interlocked.Decrement(ref inside);
+            }
+          );
+        }
+      }))
+      .ToList();
+
+    threads.ForEach(t => t.Start());
+    threads.ForEach(t => t.Join());
+
+    overlaps.Should().Be(0);
+  }
+
   private class ThreadSafeOnLists
   {
     private readonly List<SensitiveData> _data = [];
@@ -455,7 +585,7 @@ public class ThreadSafeLockingFactoryTests : BaseUnitTest
     return matches;
   }
 
-  private class ThreadLockerLogger : ThreadSafe<ThreadLockerLogger>
+  private class ThreadLockerLogger : ThreadSafe
   {
     public ThreadLockerLogger(ILogger<ThreadLockerLogger> logger)
       : base(logger) { }

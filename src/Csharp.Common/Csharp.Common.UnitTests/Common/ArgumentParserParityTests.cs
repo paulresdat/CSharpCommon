@@ -7,9 +7,9 @@ using Xunit;
 namespace Csharp.Common.UnitTests.Common;
 
 [ExcludeFromCodeCoverage]
-public class ArgumentParsingTests : BaseUnitTest
+public class ArgumentParserParityTests : BaseUnitTest
 {
-  public ArgumentParsingTests() { }
+  public ArgumentParserParityTests() { }
 
   [Theory(DisplayName = "001 Boolean options support each declared alias")]
   [InlineData("-t")]

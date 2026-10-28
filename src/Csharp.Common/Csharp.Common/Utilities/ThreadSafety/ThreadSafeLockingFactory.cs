@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace Csharp.Common.Utilities.ThreadSafety;
 
 public interface IThreadSafeLockingFactory
@@ -231,14 +233,23 @@ public class ThreadSafeLockingFactory : ThreadSafe, IThreadSafeLockingFactory
 
     if (@lock is null)
     {
-      // for some safety on generating locks, we'll want to lock on creating a key for the first time
+      // for some safety on generating locks, we'll want to lock on creating a key for the first time.
+      // another thread may have created the lock between our read and write, so check again before
+      // creating one, otherwise the threads would each be handed a different lock for the same key
       return EnterReadWriteLock(() =>
       {
-        _locks[lockKey] = new ThreadSafeLock();
-        return _locks[lockKey];
+        if (!_locks.TryGetValue(lockKey, out var existing))
+        {
+          existing = new ThreadSafeLock();
+          _locks[lockKey] = existing;
+        }
+
+        return existing;
       });
     }
 
     return @lock;
   }
+
+  private IDictionary<object, ThreadSafeLock> Locks { get; } = new ConcurrentDictionary<object, ThreadSafeLock>();
 }

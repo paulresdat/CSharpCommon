@@ -75,10 +75,20 @@ namespace Csharp.Common.Utilities.ThreadSafety;
 /// </example>
 /// </para>
 /// </summary>
-public abstract class ThreadSafe
+public abstract class ThreadSafe : IDisposable
 {
   private readonly ReaderWriterLockSlim _lockSlim = new();
   protected ILogger? Logger { get; set; }
+
+  protected ThreadSafe()
+  {
+  }
+
+  protected ThreadSafe(ILogger logger)
+  {
+    Logger = logger;
+  }
+
   private const string LockRecursionText =
     "A read lock recursion exception has been thrown while writing and is a critical error for the service to continue running, shutting down";
 
@@ -319,6 +329,8 @@ public abstract class ThreadSafe
     int? millisecondsTimeout = null
   )
   {
+    // non-try locks block until acquired, try locks report whether they acquired within the timeout
+    var acquired = true;
     switch (lockType)
     {
       case LockType.Read:
@@ -331,67 +343,49 @@ public abstract class ThreadSafe
         _lockSlim.EnterUpgradeableReadLock();
         break;
       case LockType.TryUpgradeableRead:
-        if (millisecondsTimeout is not null)
-        {
-          _lockSlim.TryEnterUpgradeableReadLock(
-            millisecondsTimeout
-              ?? throw new InvalidOperationException(
-                "Try upgradable locks requires an integer or timespan value for the timeout limit"
-              )
-          );
-        }
-        else
-        {
-          _lockSlim.TryEnterUpgradeableReadLock(
-            tryEnterLockTimeSpan
-              ?? throw new InvalidOperationException(
-                "Try upgradable locks requires an integer or timespan value for the timeout limit"
-              )
-          );
-        }
+        acquired =
+          millisecondsTimeout is not null
+            ? _lockSlim.TryEnterUpgradeableReadLock(millisecondsTimeout.Value)
+            : _lockSlim.TryEnterUpgradeableReadLock(
+              tryEnterLockTimeSpan
+                ?? throw new InvalidOperationException(
+                  "Try upgradable locks requires an integer or timespan value for the timeout limit"
+                )
+            );
         break;
       case LockType.TryRead:
-        if (millisecondsTimeout is not null)
-        {
-          _lockSlim.TryEnterReadLock(
-            millisecondsTimeout
-              ?? throw new InvalidOperationException(
-                "Try read locks requires an integer or timespan value for the timeout limit"
-              )
-          );
-        }
-        else
-        {
-          _lockSlim.TryEnterReadLock(
-            tryEnterLockTimeSpan
-              ?? throw new InvalidOperationException(
-                "Try read locks requires an integer or timespan value for the timeout limit"
-              )
-          );
-        }
+        acquired =
+          millisecondsTimeout is not null
+            ? _lockSlim.TryEnterReadLock(millisecondsTimeout.Value)
+            : _lockSlim.TryEnterReadLock(
+              tryEnterLockTimeSpan
+                ?? throw new InvalidOperationException(
+                  "Try read locks requires an integer or timespan value for the timeout limit"
+                )
+            );
         break;
       case LockType.TryWrite:
-        if (millisecondsTimeout is not null)
-        {
-          _lockSlim.TryEnterWriteLock(
-            millisecondsTimeout
-              ?? throw new InvalidOperationException(
-                "Try write locks require an integer or timespan value for the timeout limit"
-              )
-          );
-        }
-        else
-        {
-          _lockSlim.TryEnterWriteLock(
-            tryEnterLockTimeSpan
-              ?? throw new InvalidOperationException(
-                "Try write locks require an integer or timespan value for the timeout limit"
-              )
-          );
-        }
+        acquired =
+          millisecondsTimeout is not null
+            ? _lockSlim.TryEnterWriteLock(millisecondsTimeout.Value)
+            : _lockSlim.TryEnterWriteLock(
+              tryEnterLockTimeSpan
+                ?? throw new InvalidOperationException(
+                  "Try write locks require an integer or timespan value for the timeout limit"
+                )
+            );
         break;
       default:
         throw new InvalidOperationException("Unknown lock type: " + lockType);
+    }
+
+    // throwing here skips the action and the exit, since the lock was never held
+    if (!acquired)
+    {
+      throw new ThreadSafeLockingFactoryException(
+        $"Unable to acquire a {lockType} lock within the timeout of "
+          + (millisecondsTimeout is not null ? $"{millisecondsTimeout}ms" : $"{tryEnterLockTimeSpan}")
+      );
     }
   }
 
@@ -508,18 +502,9 @@ public abstract class ThreadSafe
     TryWrite,
   }
   #endregion
-}
 
-/// <summary>
-/// Thread safety with an injected logger.  For documentation see <see cref="ThreadSafe">ThreadSafe</see>
-/// </summary>
-/// <typeparam name="TParent"></typeparam>
-public abstract class ThreadSafe<TParent> : ThreadSafe
-  where TParent : class
-{
-  // ReSharper disable once ContextualLoggerProblem
-  protected ThreadSafe(ILogger<TParent> logger)
+  public void Dispose()
   {
-    Logger = logger;
+    _lockSlim.Dispose();
   }
 }
